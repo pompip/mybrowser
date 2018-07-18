@@ -27,8 +27,9 @@ public class MenuController {
 
         String uid = request.getParameter("uid");
         String phoneType = request.getParameter("phoneType");
+        String type = request.getParameter("type");
 
-        List<MenuBean> menuBeans = menuService.queryAllMenu();
+        List<MenuBean> menuBeans = menuService.queryAllMenu(type);
 
         return Result.success(menuBeans);
 

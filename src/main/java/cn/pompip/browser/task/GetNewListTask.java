@@ -85,14 +85,14 @@ public class GetNewListTask {
 
                 NewBean addNew = new NewBean();
                 addNew.setContent(news.toString());
-                addNew.setTopic(news.getString("topic"));
+                addNew.setTitle(news.getString("topic"));
                 addNew.setSource(news.getString("source"));
-                addNew.setDate(news.getString("date"));
+                addNew.setPublishTime(news.getString("date"));
                 addNew.setMiniimgSize(news.getString("miniimg_size"));
                 addNew.setMiniimg(news.getJSONArray("miniimg").toString());
                 addNew.setRowkey(news.getString("rowkey"));
                 addNew.setSource(news.getString("source"));
-                addNew.setNewType(news.getString("type"));
+                addNew.setNewsType(news.getString("type"));
                 addNew.setType(1);
                 addNew.setUrl(url);
                 addNew.setUrlmd5(urlmd5);

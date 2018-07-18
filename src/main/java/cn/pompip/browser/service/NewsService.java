@@ -24,7 +24,8 @@ public class NewsService {
 
 
     public List<NewBean> pageList(NewBean t, int pageNum, int pageSize) {
-        return newDao.findAll(Example.of(t),PageRequest.of(pageNum-1,pageSize,Sort.Direction.DESC,"id")).getContent();
+        return newDao.findAll(Example.of(t),PageRequest.of(pageNum-1,pageSize,Sort.Direction.DESC,"publishTime")).getContent();
+//        return newDao.findAllByNewsType(t.getNewsType());
     }
 
 

@@ -35,14 +35,14 @@ public class NewsController {
     @ResponseBody
     @RequestMapping(value = "/getNewsList")
     public Result getNewList(HttpServletRequest request )  {
-        String type = request.getParameter("type");
-//        String newType=request.getParameter("newType");
+//        String type = request.getParameter("type");
+        String newsType=request.getParameter("newsType");
         String pageNum = request.getParameter("pageNum");
         String pageSize = request.getParameter("pageSize");
 
         NewBean newBean = new NewBean();
-        newBean.setType(Integer.parseInt(type));
-//        newBean.setNewType(newType);
+//        newBean.setType(Integer.parseInt(type));
+        newBean.setNewsType(newsType);
         List<NewBean> newBeanList = newsService.pageList(newBean, Integer.parseInt(pageNum), Integer.parseInt(pageSize));
 
 

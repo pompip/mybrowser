@@ -133,11 +133,17 @@ public class GetVideoListTask {
                 newBean.setItemId(content.get("item_id").toString());
                 newBean.setGroupId(content.get("group_id").toString());
                 newBean.setVideoId(content.get("video_id").toString());
-                newBean.setPublishTime(content.get("publish_time").toString());
-                newBean.setVideoDuration(content.get("video_duration").toString());
+                newBean.setPublishTime(DateTimeUtil.formatDate(content.getLong("publish_time")));
+                try {
+                    newBean.setVideoDuration(content.get("video_duration").toString());
+                }catch (Exception e){
+                    newBean.setVideoDuration("100");
+                }
+
                 newBean.setUrlmd5(urlMd5);
                 newBean.setType(2);
-                newBean.setNewType(type);
+                newBean.setNewsType(type);
+
                 newBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
                 addNews.add(newBean);
 

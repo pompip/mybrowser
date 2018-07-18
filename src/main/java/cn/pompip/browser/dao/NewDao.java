@@ -20,4 +20,6 @@ public interface NewDao extends JpaRepository<NewBean,Long> {
 //    List<NewBean> findAllByUrlmd5(String urlmd5);
     boolean existsByUrlmd5(String urlmd5);
 
+    List<NewBean> findAllByNewsType(String newsType);
+
 }

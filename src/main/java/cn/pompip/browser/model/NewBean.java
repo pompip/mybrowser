@@ -33,9 +33,7 @@ public class NewBean implements Serializable {
 
     private Integer type;
 
-    private String newType;
-
-    private String topic;
+    private String newsType;
 
     private String source;
 
@@ -64,10 +62,10 @@ public class NewBean implements Serializable {
 
     private String updateTime;
 
-    private String date;
 
     private String remark;
 
+    @Column(columnDefinition = "DATETIME")
     private String publishTime;
 
     public Long getId() {
@@ -127,20 +125,12 @@ public class NewBean implements Serializable {
     }
 
 
-    public String getNewType() {
-        return newType;
+    public String getNewsType() {
+        return newsType;
     }
 
-    public void setNewType(String newType) {
-        this.newType = newType;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
+    public void setNewsType(String newsType) {
+        this.newsType = newsType;
     }
 
     public String getSource() {
@@ -247,13 +237,6 @@ public class NewBean implements Serializable {
         this.remark = remark;
     }
 
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-    }
 
     public String getPublishTime() {
         return publishTime;

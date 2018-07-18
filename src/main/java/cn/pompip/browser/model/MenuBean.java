@@ -4,118 +4,129 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.Serializable;
+
 @Entity
 public class MenuBean implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8077386532452953302L;
-	@Id
-	@GeneratedValue
-	private Long id;//主键
-	
-	private String title;
-	
-	private String code;
-	
-	private Integer type;
-	
-	private Integer status;
-	
-	private Integer sort;
-	
-	private String create_time;
+    /**
+     *
+     */
+    private static final long serialVersionUID = -8077386532452953302L;
+    @Id
+    @GeneratedValue
+    private Long id;//主键
 
-	private String update_time;
-	
-	private String remark;
+    private String title;
 
-	private String url;
-	
-	public Long getId() {
-		return id;
-	}
+    private String code;
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    private String type;
 
-	public String getTitle() {
-		return title;
-	}
+    private String newsType;
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    private Integer status;
 
-	public String getCode() {
-		return code;
-	}
+    private Integer sort;
 
-	public void setCode(String code) {
-		this.code = code;
-	}
+    private String create_time;
 
-	
-	public Integer getType() {
-		return type;
-	}
+    private String update_time;
 
-	public void setType(Integer type) {
-		this.type = type;
-	}
+    private String remark;
 
-	public Integer getStatus() {
-		return status;
-	}
+    private String url;
 
-	public void setStatus(Integer status) {
-		this.status = status;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public Integer getSort() {
-		return sort;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	public void setSort(Integer sort) {
-		this.sort = sort;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-	public String getCreate_time() {
-		return create_time;
-	}
+    public String getCode() {
+        return code;
+    }
 
-	public void setCreate_time(String create_time) {
-		this.create_time = create_time;
-	}
-
-	public String getUpdate_time() {
-		return update_time;
-	}
-
-	public void setUpdate_time(String update_time) {
-		this.update_time = update_time;
-	}
-
-	public String getRemark() {
-		return remark;
-	}
-
-	public void setRemark(String remark) {
-		this.remark = remark;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
+    public void setCode(String code) {
+        this.code = code;
+    }
 
 
-	
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+
+    public Integer getSort() {
+        return sort;
+    }
+
+    public void setSort(Integer sort) {
+        this.sort = sort;
+    }
+
+    public String getCreate_time() {
+        return create_time;
+    }
+
+    public void setCreate_time(String create_time) {
+        this.create_time = create_time;
+    }
+
+    public String getUpdate_time() {
+        return update_time;
+    }
+
+    public void setUpdate_time(String update_time) {
+        this.update_time = update_time;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public static long getSerialVersionUID() {
+        return serialVersionUID;
+    }
+
+    public String getNewsType() {
+        return newsType;
+    }
+
+    public void setNewsType(String newsType) {
+        this.newsType = newsType;
+    }
 }
