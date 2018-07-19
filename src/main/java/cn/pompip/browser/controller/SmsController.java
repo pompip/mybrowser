@@ -19,7 +19,7 @@ public class SmsController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/getVerCode.html")
+    @RequestMapping(value = "/getVerCode")
     public Result getNewList(HttpServletRequest request) throws ClientException {
         Result result = new Result();
         String phoneNum = request.getParameter("phoneNum");

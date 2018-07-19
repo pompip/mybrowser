@@ -29,7 +29,7 @@ public class UserBean implements Serializable {
 	
 	private String remark;//详情
 
-	private String icon;//图标
+	private String avatar;//图标
 	
 	private Integer status;
 	
@@ -113,12 +113,12 @@ public class UserBean implements Serializable {
 		this.remark = remark;
 	}
 
-	public String getIcon() {
-		return icon;
+	public String getAvatar() {
+		return avatar;
 	}
 
-	public void setIcon(String icon) {
-		this.icon = icon;
+	public void setAvatar(String avatar) {
+		this.avatar = avatar;
 	}
 
 	public Integer getStatus() {

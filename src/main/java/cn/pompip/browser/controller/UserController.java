@@ -1,6 +1,8 @@
 package cn.pompip.browser.controller;
 
 import cn.pompip.browser.common.entity.Result;
+import cn.pompip.browser.exception.ParamErrorException;
+import cn.pompip.browser.exception.UnLoginException;
 import cn.pompip.browser.model.UserBean;
 import cn.pompip.browser.service.UserService;
 import cn.pompip.browser.util.Cache.LocalCache;
@@ -8,21 +10,17 @@ import cn.pompip.browser.util.HttpClientUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import cn.pompip.browser.util.date.DateTimeUtil;
 import cn.pompip.browser.util.security.MD5;
-import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.model.PutObjectRequest;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 @RequestMapping("/user")
@@ -37,7 +35,7 @@ public class UserController {
      * 手机号登录
      */
     @ResponseBody
-    @RequestMapping(value = "/phoneNumLogin.html")
+    @RequestMapping(value = "/phoneNumLogin")
     public Result phoneNumLogin(HttpServletRequest request) {
         Result result = new Result();
         String version = request.getParameter("version");
@@ -64,7 +62,7 @@ public class UserController {
                 user = users.get(0);
             } else {
                 user.setNickName("未设置");
-                user.setIcon("default.png");
+                user.setAvatar("default.png");
                 user.setSex(1);
                 user.setRemark("这家伙很懒,什么都没写！");
                 user.setToken(MD5.getMD5(DateTimeUtil.getCurrentDateTimeStr()));
@@ -87,7 +85,7 @@ public class UserController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/wechatLogin.html")
+    @RequestMapping(value = "/wechatLogin")
     public Result wechatLogin(HttpServletRequest request) throws Exception {
         Result result = new Result();
 
@@ -110,7 +108,7 @@ public class UserController {
             int sex = jsonObject.getInt("sex");
             String headimgurl = jsonObject.getString("headimgurl");
             user.setNickName(weChatNickName);
-            user.setIcon(headimgurl);
+            user.setAvatar(headimgurl);
             user.setSex(sex == 1 ? 1 : 0);
             user.setRemark("这家伙很懒,什么都没写！");
             user.setToken(MD5.getMD5(DateTimeUtil.getCurrentDateTimeStr()));
@@ -129,7 +127,7 @@ public class UserController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/qqLogin.html")
+    @RequestMapping(value = "/qqLogin")
     public Result qqLogin(HttpServletRequest request) throws Exception {
         Result result = new Result();
 
@@ -153,7 +151,7 @@ public class UserController {
             String sex = jsonObject.getString("gender");
             String headimgurl = jsonObject.getString("figureurl_qq_1");
             user.setNickName(weChatNickName);
-            user.setIcon(headimgurl);
+            user.setAvatar(headimgurl);
             user.setSex("男".equals(sex) ? 1 : 0);
             user.setRemark("这家伙很懒,什么都没写！");
             user.setToken(MD5.getMD5(DateTimeUtil.getCurrentDateTimeStr()));
@@ -174,31 +172,29 @@ public class UserController {
      * 用户修改信息
      */
     @ResponseBody
-    @RequestMapping(value = "/updateInfo.html")
+    @RequestMapping(value = "/updateInfo")
     public Result updateInfo(HttpServletRequest request) {
         Result result = new Result();
         String uid = request.getParameter("uid");
         String sex = request.getParameter("sex");
         String nickName = request.getParameter("nickName");
 
-            if (StringUtils.isEmpty(uid)) {
-                result.setCode(101);
-                result.setMsg("参数错误");
-                return result;
-            }
-            UserBean user = new UserBean();
-            user.setId(Long.parseLong(uid));
-            if (!StringUtils.isEmpty(sex)) {
-                user.setSex(Integer.parseInt(sex));
-            }
-            if (!StringUtils.isEmpty(nickName)) {
-                user.setNickName(nickName);
-            }
-            userService.update(user);
-            result.setCode(0);
+        if (StringUtils.isEmpty(uid)) {
+            result.setCode(101);
+            result.setMsg("参数错误");
             return result;
-
-
+        }
+        UserBean user = new UserBean();
+        user.setId(Long.parseLong(uid));
+        if (!StringUtils.isEmpty(sex)) {
+            user.setSex(Integer.parseInt(sex));
+        }
+        if (!StringUtils.isEmpty(nickName)) {
+            user.setNickName(nickName);
+        }
+        userService.update(user);
+        result.setCode(0);
+        return result;
 
 
     }
@@ -208,45 +204,22 @@ public class UserController {
      * 上传头像
      */
     @ResponseBody
-    @RequestMapping(value = "/updateHeadImage.html")
-    public Result updateHeadImage(HttpServletRequest request) throws IOException {
-        Result result = new Result();
-        String uid = request.getParameter("uid");
-
+    @RequestMapping(value = "/updateHeadImage")
+    public Result updateHeadImage(MultipartFile file, String uid) throws IOException {
         if (StringUtils.isEmpty(uid)) {
-            result.setCode(101);
-            result.setMsg("参数错误");
-            return result;
+            throw new UnLoginException("id为空");
         }
-        this.uploadHeadImage(request, uid);
-        UserBean user = new UserBean();
-        user.setId(Long.parseLong(uid));
-        user.setIcon(PropertiesFileUtil.getValue("aliyun_oss_url") + "/headImages/" + uid + ".png");
-        userService.update(user);
-        Map<String, String> data = new HashMap<String, String>();
-        data.put("avatar", user.getIcon());
-        result.setCode(0);
-        result.setData(data);
-        return result;
+
+        UserBean userBean = userService.update(file, uid);
+
+        return Result.success(userBean);
 
 
     }
 
-    /***
-     * 头像上传到阿里云oss
-     * @param request
-     * @param uid
-     * @throws IOException
-     */
-    private void uploadHeadImage(HttpServletRequest request, String uid) throws IOException {
-        InputStream is = request.getInputStream();
-        OSSClient ossClient = new OSSClient(PropertiesFileUtil.getValue("aliyun_oss_endpoint"), PropertiesFileUtil.getValue("aliyun_accessKeyId"), PropertiesFileUtil.getValue("aliyun_accessKeySecret"));
-        ossClient.putObject(new PutObjectRequest(PropertiesFileUtil.getValue("aliyun_oss_bucketName"), "headImages/" + uid + ".png", is));
-        ossClient.shutdown();
-    }
 
     @ResponseBody
-    @RequestMapping(value = "/bindPhoneNum.html")
+    @RequestMapping(value = "/bindPhoneNum")
     public Result bindPhoneNum(HttpServletRequest request) {
         Result result = new Result();
         String uid = request.getParameter("uid");
@@ -254,9 +227,7 @@ public class UserController {
         String verCode = request.getParameter("verCode");
 
         if (StringUtils.isEmpty(uid) || StringUtils.isEmpty(phoneNum) || StringUtils.isEmpty(verCode)) {
-            result.setCode(101);
-            result.setMsg("参数错误");
-            return result;
+            throw new ParamErrorException("参数错误");
         }
         String value = LocalCache.getInStance().getLocalCache(phoneNum + "_2") + "";
         LocalCache.getInStance().removeLocalCache(phoneNum + "_2");

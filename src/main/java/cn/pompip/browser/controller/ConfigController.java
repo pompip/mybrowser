@@ -19,7 +19,7 @@ public class ConfigController {
     private ConfigService configService;
 
     @ResponseBody
-    @RequestMapping(value = "/getConfigByType.html")
+    @RequestMapping(value = "/getConfigByType")
     public Result getConfigByType(HttpServletRequest request) {
         String type = request.getParameter("type");
         ConfigBean config = this.configService.selectByType(Integer.parseInt(type));

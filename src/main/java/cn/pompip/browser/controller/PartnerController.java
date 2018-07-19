@@ -19,7 +19,7 @@ public class PartnerController {
     private PartnerService partnerService;
 
     @ResponseBody
-    @RequestMapping(value = "/getPartnerList.html")
+    @RequestMapping(value = "/getPartnerList")
     public Result getPartnerList(HttpServletRequest request) {
         String uid = request.getParameter("uid");
         String phoneType = request.getParameter("phoneType");

@@ -22,7 +22,7 @@ public class MenuController {
     private MenuService menuService;
 
     @ResponseBody
-    @RequestMapping(value = "/getMenuList.html")
+    @RequestMapping(value = "/getMenuList")
     public Result getMenuList(HttpServletRequest request) {
 
         String uid = request.getParameter("uid");

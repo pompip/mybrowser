@@ -51,7 +51,7 @@ public class NewsController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/getNewInfo.html")
+    @RequestMapping(value = "/getNewInfo")
     public Result getNewInfo(HttpServletRequest request) throws IOException {
         String id = request.getParameter("id");
         String uid = request.getParameter("uid");
@@ -77,7 +77,7 @@ public class NewsController {
 
     }
 
-    @RequestMapping(value = "/share.html")
+    @RequestMapping(value = "/share")
     public ModelAndView shareNew(HttpServletRequest request , ModelAndView mav) throws IOException {
         String id = request.getParameter("id");
         //String urlMd5=request.getParameter("urlMd5");
@@ -102,7 +102,7 @@ public class NewsController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/getVideoInfo.html")
+    @RequestMapping(value = "/getVideoInfo")
     public Result getVideoInfo(HttpServletRequest request) throws Exception {
         Result result = new Result();
         String id = request.getParameter("id");

@@ -19,7 +19,7 @@ public class ClientVersionController {
     private ClientVersionService clientVersionService;
 
     @ResponseBody
-    @RequestMapping(value = "/checkVersion.html")
+    @RequestMapping(value = "/checkVersion")
     public Result checkVersion(HttpServletRequest request) {
         String type = request.getParameter("type");
         ClientVersionBean version = this.clientVersionService.selectByType(Integer.parseInt(type));

@@ -22,7 +22,7 @@ public class FeedbackController {
     private FeedbackService feedbackService;
 
     @ResponseBody
-    @RequestMapping(value = "/submit.html")
+    @RequestMapping(value = "/submit")
     public Result submit(HttpServletRequest request) {
         String content = request.getParameter("content");
         String uid = request.getParameter("uid");

@@ -2,6 +2,7 @@ package cn.pompip.browser.controller;
 
 
 import cn.pompip.browser.common.entity.Result;
+import cn.pompip.browser.exception.UnLoginException;
 import cn.pompip.browser.model.CommentPraiseBean;
 import cn.pompip.browser.model.NewCommentBean;
 import cn.pompip.browser.service.CommentPraiseService;
@@ -9,6 +10,7 @@ import cn.pompip.browser.service.NewsCommentService;
 import cn.pompip.browser.util.date.DateTimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -28,8 +30,8 @@ public class NewsCommentController {
     private CommentPraiseService commentPraiseService;
 
     @ResponseBody
-    @RequestMapping(value = "/praisenum.html")
-    public Result praiseNum(HttpServletRequest request)  {
+    @RequestMapping(value = "/praiseum")
+    public Result praiseNum(HttpServletRequest request) {
         Result result = new Result();
         String commentId = request.getParameter("commentId");
         String fromUid = request.getParameter("uid");
@@ -54,8 +56,8 @@ public class NewsCommentController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/getCommentList.html")
-    public Result getCommentList(HttpServletRequest request)  {
+    @RequestMapping(value = "/getCommentList")
+    public Result getCommentList(HttpServletRequest request) {
         String newId = request.getParameter("newId");
         String uid = request.getParameter("uid");
         String pageNum = request.getParameter("pageNum");
@@ -72,13 +74,16 @@ public class NewsCommentController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/comment.html")
+    @RequestMapping(value = "/comment")
     public Result comment(HttpServletRequest request) {
         String fromUid = request.getParameter("uid");
         String content = request.getParameter("content");
         String topicType = request.getParameter("type");
         String newId = request.getParameter("newId");
 
+        if (StringUtils.isEmpty(fromUid)) {
+            throw new UnLoginException("uid为空");
+        }
         NewCommentBean newComment = new NewCommentBean();
         newComment.setFromUid(Long.parseLong(fromUid));
         newComment.setContent(content);
