@@ -3,6 +3,7 @@ package cn.pompip.browser.service;
 
 import cn.pompip.browser.dao.UserDao;
 import cn.pompip.browser.exception.ParamErrorException;
+import cn.pompip.browser.model.ImageBean;
 import cn.pompip.browser.model.UserBean;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import com.aliyun.oss.OSSClient;
@@ -22,11 +23,23 @@ public class UserService {
     @Autowired
     private UserDao dao;
 
+    @Autowired
+    private ImageServer imageServer;
+
     public int insert(UserBean t) {
         dao.save(t);
         return 0;
     }
 
+    public UserBean updateAvatar(MultipartFile file, String uid) throws IOException {
+        ImageBean imageBean = imageServer.saveImage(file);
+        String imageUrl = imageServer.generateImageUrl(imageBean);
+        UserBean user = new UserBean();
+        user.setId(Long.parseLong(uid));
+        user.setAvatar(imageUrl);
+        return dao.save(user);
+
+    }
 
     public UserBean update(MultipartFile file, String uid) {
         InputStream is = null;
@@ -44,7 +57,7 @@ public class UserService {
 
         UserBean user = new UserBean();
         user.setId(Long.parseLong(uid));
-        user.setAvatar(PropertiesFileUtil.getValue("aliyun_oss_url") + "/"+avatarPath);
+        user.setAvatar(PropertiesFileUtil.getValue("aliyun_oss_url") + "/" + avatarPath);
         return dao.save(user);
     }
 

@@ -2,7 +2,9 @@ package cn.pompip.browser.dao;
 
 import cn.pompip.browser.model.ClientVersionBean;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ClientVersionDao extends JpaRepository<ClientVersionBean,Long> {
 
 	//通过类型查询版本信息

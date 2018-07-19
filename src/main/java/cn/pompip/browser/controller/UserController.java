@@ -210,8 +210,7 @@ public class UserController {
             throw new UnLoginException("id为空");
         }
 
-        UserBean userBean = userService.update(file, uid);
-
+        UserBean userBean = userService.updateAvatar(file, uid);
         return Result.success(userBean);
 
 

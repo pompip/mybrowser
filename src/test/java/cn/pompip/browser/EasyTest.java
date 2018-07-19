@@ -1,6 +1,7 @@
 package cn.pompip.browser;
 
 import cn.pompip.browser.task.GetNewListTask;
+import cn.pompip.browser.task.GetVideoListTask;
 import cn.pompip.browser.util.HttpClientUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import org.junit.Test;
@@ -37,5 +38,10 @@ public class EasyTest {
 
         HttpClientUtil.writeFileToDisk("http://wx.qlogo.cn/mmopen/1a4mFicfA1HDkGwjFnvVTbDrJyNOgOOaLMLkicavbibk3V9vFDYN8htP0W83r7MD2x00B4uIK8vVJ5yZ9qVp5k8YdUICRtibU30d/0", "d://1.png");
 
+    }
+    @Test
+    public void getVideo(){
+        GetVideoListTask videoListTask = new GetVideoListTask();
+        videoListTask.run();
     }
 }
