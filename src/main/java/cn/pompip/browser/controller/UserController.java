@@ -36,7 +36,7 @@ public class UserController {
      */
     @ResponseBody
     @RequestMapping(value = "/phoneNumLogin")
-    public Result phoneNumLogin(HttpServletRequest request) {
+    public Result phoneNumLogin(HttpServletRequest request) throws Exception {
         Result result = new Result();
         String version = request.getParameter("version");
         String phoneType = request.getParameter("phoneType");
@@ -173,16 +173,14 @@ public class UserController {
      */
     @ResponseBody
     @RequestMapping(value = "/updateInfo")
-    public Result updateInfo(HttpServletRequest request) {
-        Result result = new Result();
+    public Result updateInfo(HttpServletRequest request) throws Exception {
+
         String uid = request.getParameter("uid");
         String sex = request.getParameter("sex");
         String nickName = request.getParameter("nickName");
 
         if (StringUtils.isEmpty(uid)) {
-            result.setCode(101);
-            result.setMsg("参数错误");
-            return result;
+            throw new UnLoginException("uid为空");
         }
         UserBean user = new UserBean();
         user.setId(Long.parseLong(uid));
@@ -192,8 +190,10 @@ public class UserController {
         if (!StringUtils.isEmpty(nickName)) {
             user.setNickName(nickName);
         }
-        userService.update(user);
+        UserBean update = userService.update(user);
+        Result result = new Result();
         result.setCode(0);
+        result.setData(update);
         return result;
 
 
@@ -219,7 +219,7 @@ public class UserController {
 
     @ResponseBody
     @RequestMapping(value = "/bindPhoneNum")
-    public Result bindPhoneNum(HttpServletRequest request) {
+    public Result bindPhoneNum(HttpServletRequest request) throws Exception {
         Result result = new Result();
         String uid = request.getParameter("uid");
         String phoneNum = request.getParameter("phoneNum");

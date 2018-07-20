@@ -8,6 +8,7 @@ import cn.pompip.browser.model.UserBean;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.PutObjectRequest;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
@@ -61,8 +62,12 @@ public class UserService {
         return dao.save(user);
     }
 
-    public UserBean update(UserBean user) {
-        return dao.save(user);
+    public UserBean update(UserBean user) throws Exception {
+
+        UserBean userBean = dao.findById(user.getId()).orElse(user);
+
+        org.springframework.beans.BeanUtils.copyProperties(user,userBean);
+        return dao.save(userBean);
     }
 
 

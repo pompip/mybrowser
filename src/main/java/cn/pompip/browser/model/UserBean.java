@@ -1,198 +1,204 @@
 package cn.pompip.browser.model;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.SelectBeforeUpdate;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.Serializable;
+
 @Entity
+@DynamicUpdate
+@DynamicInsert
 public class UserBean implements Serializable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8077386532452953302L;
-	@Id
-	@GeneratedValue
-	private Long id;//主键
-	
-	private String userName;//用户名
-	
-	private String nickName;//昵称
-	
-	private String password;//名称
-	
-	private String email;
-	
-	private String phone;
-	
-	private Integer sex;
-	
-	private String remark;//详情
+    /**
+     *
+     */
+    private static final long serialVersionUID = -8077386532452953302L;
+    @Id
+    @GeneratedValue
+    private Long id;//主键
 
-	private String avatar;//图标
-	
-	private Integer status;
-	
-	private String createTime;
-	
-	private String updateTime;
-	
-	private String token;
-	
-	private String wechatId;
-	
-	private String qqId;
-	
-	private String phoneType;
-	
-	private String version;
-	
-	private Integer loginType;
+    private String userName;//用户名
 
-	public Long getId() {
-		return id;
-	}
+    private String nickName;//昵称
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    private String password;//名称
 
-	public String getUserName() {
-		return userName;
-	}
+    private String email;
 
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
+    private String phone;
 
-	public String getNickName() {
-		return nickName;
-	}
+    private Integer sex;
 
-	public void setNickName(String nickName) {
-		this.nickName = nickName;
-	}
+    private String remark;//详情
 
-	public String getPassword() {
-		return password;
-	}
+    private String avatar;//图标
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    private Integer status;
 
-	public String getEmail() {
-		return email;
-	}
+    private String createTime;
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    private String updateTime;
 
-	public String getPhone() {
-		return phone;
-	}
+    private String token;
 
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
+    private String wechatId;
 
-	public Integer getSex() {
-		return sex;
-	}
+    private String qqId;
 
-	public void setSex(Integer sex) {
-		this.sex = sex;
-	}
+    private String phoneType;
 
-	public String getRemark() {
-		return remark;
-	}
+    private String version;
 
-	public void setRemark(String remark) {
-		this.remark = remark;
-	}
+    private Integer loginType;
 
-	public String getAvatar() {
-		return avatar;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public void setAvatar(String avatar) {
-		this.avatar = avatar;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public Integer getStatus() {
-		return status;
-	}
+    public String getUserName() {
+        return userName;
+    }
 
-	public void setStatus(Integer status) {
-		this.status = status;
-	}
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
 
-	public String getCreateTime() {
-		return createTime;
-	}
+    public String getNickName() {
+        return nickName;
+    }
 
-	public void setCreateTime(String createTime) {
-		this.createTime = createTime;
-	}
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
 
-	public String getUpdateTime() {
-		return updateTime;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public void setUpdateTime(String updateTime) {
-		this.updateTime = updateTime;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-	public String getToken() {
-		return token;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setToken(String token) {
-		this.token = token;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public String getWechatId() {
-		return wechatId;
-	}
+    public String getPhone() {
+        return phone;
+    }
 
-	public void setWechatId(String wechatId) {
-		this.wechatId = wechatId;
-	}
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-	public String getQqId() {
-		return qqId;
-	}
+    public Integer getSex() {
+        return sex;
+    }
 
-	public void setQqId(String qqId) {
-		this.qqId = qqId;
-	}
+    public void setSex(Integer sex) {
+        this.sex = sex;
+    }
 
-	public String getPhoneType() {
-		return phoneType;
-	}
+    public String getRemark() {
+        return remark;
+    }
 
-	public void setPhoneType(String phoneType) {
-		this.phoneType = phoneType;
-	}
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
 
-	public String getVersion() {
-		return version;
-	}
+    public String getAvatar() {
+        return avatar;
+    }
 
-	public void setVersion(String version) {
-		this.version = version;
-	}
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
-	public Integer getLoginType() {
-		return loginType;
-	}
+    public Integer getStatus() {
+        return status;
+    }
 
-	public void setLoginType(Integer loginType) {
-		this.loginType = loginType;
-	}
-	
-	
-	
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getWechatId() {
+        return wechatId;
+    }
+
+    public void setWechatId(String wechatId) {
+        this.wechatId = wechatId;
+    }
+
+    public String getQqId() {
+        return qqId;
+    }
+
+    public void setQqId(String qqId) {
+        this.qqId = qqId;
+    }
+
+    public String getPhoneType() {
+        return phoneType;
+    }
+
+    public void setPhoneType(String phoneType) {
+        this.phoneType = phoneType;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public Integer getLoginType() {
+        return loginType;
+    }
+
+    public void setLoginType(Integer loginType) {
+        this.loginType = loginType;
+    }
+
+
 }
