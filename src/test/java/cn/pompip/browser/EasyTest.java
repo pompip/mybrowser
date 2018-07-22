@@ -1,10 +1,14 @@
 package cn.pompip.browser;
 
 import cn.pompip.browser.task.GetVideoListTask;
+import cn.pompip.browser.util.InfoMapEncrypt;
 import cn.pompip.browser.util.MyBeanUtils;
 import cn.pompip.browser.util.HttpClientUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
+import cn.pompip.browser.util.security.ThreeDES;
 import org.junit.Test;
+
+import java.io.UnsupportedEncodingException;
 
 import static cn.pompip.browser.util.NumberUtil.moneyToChinese;
 
@@ -80,6 +84,52 @@ public class EasyTest {
 
         public void setAge(String age) {
             this.age = age;
+        }
+    }
+
+
+    @Test
+    public  void testEncode() {
+        ThreeDES des = new ThreeDES(); // 实例化一个对像
+        des.getKey("my1"); // 生成密匙
+
+        String strEnc = null;// 加密字符串,返回String的密文
+        try {
+            strEnc = des.getEncString("userName=xiejiong&password=123456");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        System.out.println(strEnc);
+//
+        ThreeDES des1 = new ThreeDES(); // 实例化一个对像
+        des1.getKey("my1"); // 生成密匙
+        String strDes = null;// 把String 类型的密文解密
+        try {
+            strDes = des1.getDesString(strEnc);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        System.out.println(strDes);
+    }
+
+    @Test
+    public  void testBase64Encode() {
+        String temp = "ABC2Eefgx34";
+        System.out.println("加密前:" + temp);
+        String enTemp = InfoMapEncrypt.encrypt(temp);
+        System.out.println("加密后:" + enTemp);
+        try {
+            String deTemp = InfoMapEncrypt.decrypt("+Zs+zn6CZhCxQkYGqsCOg4eu8suDLmyQnDDLioZjq5s=");
+            System.out.println("对加密结果解密:" + deTemp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        enTemp = enTemp.replace("4", "3");
+        try {
+            InfoMapEncrypt.decrypt(enTemp);
+        } catch (Exception e) {
+            System.out.println("如果密文存在问题,则有异常:" + e.getMessage());
         }
     }
 }
