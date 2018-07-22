@@ -1,7 +1,7 @@
 package cn.pompip.browser;
 
-import cn.pompip.browser.task.GetNewListTask;
 import cn.pompip.browser.task.GetVideoListTask;
+import cn.pompip.browser.util.MyBeanUtils;
 import cn.pompip.browser.util.HttpClientUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import org.junit.Test;
@@ -43,5 +43,43 @@ public class EasyTest {
     public void getVideo(){
         GetVideoListTask videoListTask = new GetVideoListTask();
         videoListTask.run();
+    }
+    @Test
+    public void testCheckNotNull(){
+        Person source = new Person();
+        source.age = "11";
+        String[] names =   MyBeanUtils.findNotNullPropertyName(source);
+
+      for(String n:names){
+          System.out.println(n);
+      }
+    }
+    @Test
+    public  void textNull(){
+        Object oo =null;
+
+        if (oo==null){
+
+        }
+    }
+    class Person{
+        public String name;
+        public String age;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getAge() {
+            return age;
+        }
+
+        public void setAge(String age) {
+            this.age = age;
+        }
     }
 }

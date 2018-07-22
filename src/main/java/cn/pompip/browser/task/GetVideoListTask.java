@@ -43,7 +43,7 @@ public class GetVideoListTask {
     subv_boutique	原创
     subv_broaden_view	开眼*/
 //    @Scheduled(cron = " 0/30 * * * * ?")
-    @Scheduled(cron = "0 0/30 * * * ?")
+    @Scheduled(fixedDelay = 30*60*1000)
     @Transactional
     public void run() {
         log.info("-------------------begin GetVideoListTask-------------------");

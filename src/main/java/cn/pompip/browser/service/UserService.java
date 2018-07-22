@@ -5,10 +5,10 @@ import cn.pompip.browser.dao.UserDao;
 import cn.pompip.browser.exception.ParamErrorException;
 import cn.pompip.browser.model.ImageBean;
 import cn.pompip.browser.model.UserBean;
+import cn.pompip.browser.util.MyBeanUtils;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.model.PutObjectRequest;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
@@ -64,9 +64,9 @@ public class UserService {
 
     public UserBean update(UserBean user) throws Exception {
 
-        UserBean userBean = dao.findById(user.getId()).orElse(user);
+        UserBean userBean = dao.getOne(user.getId());
 
-        org.springframework.beans.BeanUtils.copyProperties(user,userBean);
+        MyBeanUtils.mergeNotNullProperty(user,userBean);
         return dao.save(userBean);
     }
 

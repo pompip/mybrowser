@@ -47,7 +47,7 @@ public class GetNewListTask {
 	hulianwang	互联网
 	shuma	数码*/
 
-    @Scheduled(cron = "0 0/30 * * * ?")
+    @Scheduled(fixedDelay = 30*60*1000)
 //    @Scheduled(cron = " 0/30 * * * * ?")
     @Transactional
     public void run() {
