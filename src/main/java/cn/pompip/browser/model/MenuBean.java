@@ -18,7 +18,7 @@ public class MenuBean implements Serializable {
 
     private String title;
 
-    private String code;
+    private String icon;
 
     private String type;
 
@@ -52,14 +52,13 @@ public class MenuBean implements Serializable {
         this.title = title;
     }
 
-    public String getCode() {
-        return code;
+    public String getIcon() {
+        return icon;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
-
 
     public String getType() {
         return type;

@@ -3,14 +3,12 @@ package cn.pompip.browser.model;
 import cn.pompip.browser.util.json.serializer.BrowserJsonSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 
-@Entity
-public class NewBean implements Serializable {
+@Entity()
+@Table(name = "new_bean")
+public class NewsBean implements Serializable {
 
     /**
      *

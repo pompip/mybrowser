@@ -1,6 +1,7 @@
 package cn.pompip.browser.controller;
 
 import cn.pompip.browser.common.entity.Result;
+import cn.pompip.browser.model.MenuBean;
 import cn.pompip.browser.model.PartnerBean;
 import cn.pompip.browser.service.PartnerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,13 @@ public class PartnerController {
         PartnerBean partner = new PartnerBean();
         partner.setStatus(0);
         List<PartnerBean> list = partnerService.queryList(partner);
-
+        for(int i=0;i<24;i++){
+            PartnerBean menuBean = new PartnerBean();
+            menuBean.setTitle("hello world");
+            menuBean.setUrl("http://m.baidu.com");
+            menuBean.setIcon("http://baidu.com/favicon.ico");
+            list.add(menuBean);
+        }
 
         return Result.success(list);
 

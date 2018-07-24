@@ -8,7 +8,7 @@ import cn.pompip.browser.common.Constant;
 import cn.pompip.browser.common.entity.Result;
 import cn.pompip.browser.model.UserBean;
 import cn.pompip.browser.service.UserService;
-import cn.pompip.browser.util.HttpClientUtil;
+import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.MapUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import cn.pompip.browser.util.json.JSONUtil;
@@ -37,6 +37,8 @@ public class SecurityInterceptor implements HandlerInterceptor {
 	
 	@Autowired
 	private UserService userService;
+
+	@Autowired PropertiesFileUtil propertiesFileUtil;
       
     public SecurityInterceptor() {  
         // TODO Auto-generated constructor stub  
@@ -64,10 +66,10 @@ public class SecurityInterceptor implements HandlerInterceptor {
                              HttpServletResponse response, Object handler) throws Exception {
     	log.info("request url:"+request.getRequestURL());
     	String url=request.getRequestURL().toString(); 
-    	Map<String,String> requestParam=HttpClientUtil.getParameterMap(request);
+    	Map<String,String> requestParam=HttpUtil.getParameterMap(request);
         requestParam = MapUtil.sortMapByKey(requestParam);
         log.info("request param:"+JSONUtil.toJson(requestParam));
-    	if("1".equals(PropertiesFileUtil.getValue("DEBUG"))){
+    	if("1".equals(propertiesFileUtil.getValue("DEBUG"))){
     		log.info("调试模式，通信不加密");
             return true;
         }

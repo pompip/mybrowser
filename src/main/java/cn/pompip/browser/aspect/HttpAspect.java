@@ -55,8 +55,12 @@ public class HttpAspect {
     }
 
     @AfterReturning(pointcut = "log()",returning = "object")
-    public void doAfterReturning(Object object) throws JsonProcessingException {
-        logger.info(mapper.writeValueAsString(object));
+    public void doAfterReturning(Object object)  {
+        try {
+            logger.info(mapper.writeValueAsString(object));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
 
     }
 

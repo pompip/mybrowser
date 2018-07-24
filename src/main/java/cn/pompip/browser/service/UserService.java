@@ -27,6 +27,8 @@ public class UserService {
     @Autowired
     private ImageServer imageServer;
 
+
+
     public int insert(UserBean t) {
         dao.save(t);
         return 0;
@@ -50,10 +52,12 @@ public class UserService {
             throw new ParamErrorException("图片读取错误");
         }
         OSSClient ossClient = new OSSClient(PropertiesFileUtil.getValue("aliyun_oss_endpoint"),
-                PropertiesFileUtil.getValue("aliyun_accessKeyId"), PropertiesFileUtil.getValue("aliyun_accessKeySecret"));
+                PropertiesFileUtil.getValue("aliyun_accessKeyId"),
+                PropertiesFileUtil.getValue("aliyun_accessKeySecret"));
 
         String avatarPath = "headImages/" + uid + "_" + System.currentTimeMillis() + ".png";
-        ossClient.putObject(new PutObjectRequest(PropertiesFileUtil.getValue("aliyun_oss_bucketName"), avatarPath, is));
+        ossClient.putObject(new PutObjectRequest(PropertiesFileUtil.getValue("aliyun_oss_bucketName"),
+                avatarPath, is));
         ossClient.shutdown();
 
         UserBean user = new UserBean();
@@ -62,11 +66,9 @@ public class UserService {
         return dao.save(user);
     }
 
-    public UserBean update(UserBean user) throws Exception {
-
+    public UserBean update(UserBean user)  {
         UserBean userBean = dao.getOne(user.getId());
-
-        MyBeanUtils.mergeNotNullProperty(user,userBean);
+        MyBeanUtils.mergeNotNullProperty(userBean,user);
         return dao.save(userBean);
     }
 

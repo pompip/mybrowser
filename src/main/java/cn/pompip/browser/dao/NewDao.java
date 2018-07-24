@@ -1,25 +1,25 @@
 package cn.pompip.browser.dao;
 
-import cn.pompip.browser.model.NewBean;
+import cn.pompip.browser.model.NewsBean;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface NewDao extends JpaRepository<NewBean,Long> {
+public interface NewDao extends JpaRepository<NewsBean,Long> {
 
-//	public List<NewBean> queryListByUrlMd5(Set<String> url);
+//	public List<NewsBean> queryListByUrlMd5(Set<String> url);
 //
-//	public int insertNewsBatch(List<NewBean> list);
+//	public int insertNewsBatch(List<NewsBean> list);
 //
-//	public int insertVideoBatch(List<NewBean> list);
+//	public int insertVideoBatch(List<NewsBean> list);
 
-//    void saveAndIgnore(NewBean newBean);
+//    void saveAndIgnore(NewsBean newBean);
 
-//    List<NewBean> findAllByUrlmd5(String urlmd5);
+//    List<NewsBean> findAllByUrlmd5(String urlmd5);
     boolean existsByUrlmd5(String urlmd5);
 
-    List<NewBean> findAllByNewsType(String newsType);
+    List<NewsBean> findAllByNewsType(String newsType);
 
 }

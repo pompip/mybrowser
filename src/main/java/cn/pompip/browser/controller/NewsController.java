@@ -2,15 +2,17 @@ package cn.pompip.browser.controller;
 
 
 import cn.pompip.browser.common.entity.Result;
-import cn.pompip.browser.model.NewBean;
+import cn.pompip.browser.model.NewsBean;
+import cn.pompip.browser.model.NewsContentBean;
 import cn.pompip.browser.service.NewsService;
-import cn.pompip.browser.util.HttpClientUtil;
+import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.security.Base64;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
@@ -40,40 +42,25 @@ public class NewsController {
         String pageNum = request.getParameter("pageNum");
         String pageSize = request.getParameter("pageSize");
 
-        NewBean newBean = new NewBean();
-//        newBean.setType(Integer.parseInt(type));
-        newBean.setNewsType(newsType);
-        List<NewBean> newBeanList = newsService.pageList(newBean, Integer.parseInt(pageNum), Integer.parseInt(pageSize));
+        NewsBean newsBean = new NewsBean();
+//        newsBean.setType(Integer.parseInt(type));
+        newsBean.setNewsType(newsType);
+        List<NewsBean> newsBeanList = newsService.pageList(newsBean, Integer.parseInt(pageNum), Integer.parseInt(pageSize));
 
 
-        return Result.success(newBeanList);
+        return Result.success(newsBeanList);
 
     }
 
     @ResponseBody
     @RequestMapping(value = "/getNewInfo")
-    public Result getNewInfo(HttpServletRequest request) throws IOException {
+    public Result getNewsInfo(HttpServletRequest request) throws Throwable {
         String id = request.getParameter("id");
         String uid = request.getParameter("uid");
-        String urlMd5 = request.getParameter("urlMd5");
 
-        NewBean newBean = newsService.getById(Long.parseLong(id));
-        Document htmlDom = this.parseHtmlFromString(newBean.getUrl());
-        String title = htmlDom.getElementsByClass("title").get(0).text();
-        String timeSrc = htmlDom.getElementsByClass("src").get(0).text();
-        String content = htmlDom.getElementById("content").html().toString();
-        String[] timeSrcArr = timeSrc.split("来源：");
-        String time = timeSrcArr[0].replaceAll("&nbsp;", "");
-        String source = timeSrcArr.length > 1 ? timeSrcArr[1] : "";
-        Map resultMap = new HashMap();
-        resultMap.put("title", title);
-        resultMap.put("time", time);
-        resultMap.put("source", source);
-        resultMap.put("content", content);
-        resultMap.put("urlmd5", urlMd5);
-        resultMap.put("id", id);
+        NewsContentBean newsContentBean = newsService.findNewsContentByID(Long.parseLong(id));
 
-        return Result.success(resultMap);
+        return Result.success(newsContentBean);
 
     }
 
@@ -84,19 +71,20 @@ public class NewsController {
         //String url=request.getParameter("url");
         //String type=request.getParameter("type");
 
-        NewBean newBean = newsService.getById(Long.parseLong(id));
-        Document htmlDom = this.parseHtmlFromString(newBean.getUrl());
-        String title = htmlDom.getElementsByClass("title").get(0).text();
-        String timeSrc = htmlDom.getElementsByClass("src").get(0).text();
-        String content = htmlDom.getElementById("content").html().toString();
-        String[] timeSrcArr = timeSrc.split("来源：");
-        String time = timeSrcArr[0].replaceAll("&nbsp;", "");
-        String source = timeSrcArr.length > 1 ? timeSrcArr[1] : "";
-        mav.addObject("title", title);
-        mav.addObject("time", time);
-        mav.addObject("source", source);
-        mav.addObject("content", content);
-        mav.setViewName("new/detail");
+//        NewsBean newsBean = newsService.getById(Long.parseLong(id));
+//
+//        Document htmlDom = parseHtmlFromString(newsBean.getUrl());
+//        String title = htmlDom.getElementsByClass("title").get(0).text();
+//        String timeSrc = htmlDom.getElementsByClass("src").get(0).text();
+//        String content = htmlDom.getElementById("content").html().toString();
+//        String[] timeSrcArr = timeSrc.split("来源：");
+//        String time = timeSrcArr[0].replaceAll("&nbsp;", "");
+//        String source = timeSrcArr.length > 1 ? timeSrcArr[1] : "";
+//        mav.addObject("title", title);
+//        mav.addObject("time", time);
+//        mav.addObject("source", source);
+//        mav.addObject("content", content);
+//        mav.setViewName("new/detail");
         return mav;
 
     }
@@ -109,19 +97,19 @@ public class NewsController {
         String uid = request.getParameter("uid");
         String url = request.getParameter("url");
 
-        NewBean newBean = newsService.getById(Long.parseLong(id));
+        NewsBean newsBean = newsService.getById(Long.parseLong(id));
         String videoUrl = "http://ib.365yg.com";
         String r = System.currentTimeMillis() + "";
-        String params = "/video/urls/v/1/toutiao/mp4/" + newBean.getVideoId() + "?r=" + r;
+        String params = "/video/urls/v/1/toutiao/mp4/" + newsBean.getVideoId() + "?r=" + r;
         CRC32 crc32 = new CRC32();
         crc32.update(params.getBytes());
         videoUrl = videoUrl + params + "&s=" + crc32.getValue();
-        String data = HttpClientUtil.get(videoUrl);
+        String data = HttpUtil.get(videoUrl);
         JSONObject jsonObject = new JSONObject(data);
         if ("success".equals(jsonObject.getString("message")) && jsonObject.getInt("total") > 0) {
             JSONObject videoData = jsonObject.getJSONObject("data").getJSONObject("video_list").getJSONObject("video_1");
-            Map resultMap = new HashMap();
-            resultMap.put("title", newBean.getTitle());
+            Map<String,String> resultMap = new HashMap<>();
+            resultMap.put("title", newsBean.getTitle());
             resultMap.put("main_url", Base64.decodeString(videoData.getString("main_url")));
             resultMap.put("backup_url_1", Base64.decodeString(videoData.getString("backup_url_1")));
             result.setCode(0);
@@ -131,12 +119,15 @@ public class NewsController {
             result.setCode(1001);
         }
         return result;
+    }
 
+    @GetMapping("/newsContentH5")
+    public Map<String,String> getNewsContentH5(String id ){
+        Map<String ,String> map = new HashMap<>();
+
+        return map;
     }
 
 
-    private static Document parseHtmlFromString(String url) throws IOException {
-        return Jsoup.connect(url).get();
-    }
 
 }

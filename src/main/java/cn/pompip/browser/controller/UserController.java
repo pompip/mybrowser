@@ -6,7 +6,7 @@ import cn.pompip.browser.exception.UnLoginException;
 import cn.pompip.browser.model.UserBean;
 import cn.pompip.browser.service.UserService;
 import cn.pompip.browser.util.Cache.LocalCache;
-import cn.pompip.browser.util.HttpClientUtil;
+import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import cn.pompip.browser.util.date.DateTimeUtil;
 import cn.pompip.browser.util.security.MD5;
@@ -30,6 +30,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
 
     /***
      * 手机号登录
@@ -102,7 +103,8 @@ public class UserController {
             user.setUpdateTime(DateTimeUtil.getCurrentDateTimeStr());
             userService.update(user);
         } else {
-            String wechatRes = HttpClientUtil.get(PropertiesFileUtil.getValue("wechat_get_user_info_url") + "?access_token=" + access_token + "&openid=" + openid);
+            String wechatRes = HttpUtil.get(PropertiesFileUtil.getValue("wechat_get_user_info_url")
+                    + "?access_token=" + access_token + "&openid=" + openid);
             JSONObject jsonObject = new JSONObject(wechatRes);
             String weChatNickName = jsonObject.getString("nickname");
             int sex = jsonObject.getInt("sex");
@@ -145,7 +147,9 @@ public class UserController {
             user.setUpdateTime(DateTimeUtil.getCurrentDateTimeStr());
             userService.update(user);
         } else {
-            String wechatRes = HttpClientUtil.get(PropertiesFileUtil.getValue("qq_get_user_info_url") + "?access_token=" + access_token + "&oauth_consumer_key=" + PropertiesFileUtil.getValue("qq_appid") + "&openid=" + openid);
+            String wechatRes = HttpUtil.get(PropertiesFileUtil.getValue("qq_get_user_info_url") + "?access_token="
+                    + access_token + "&oauth_consumer_key=" + PropertiesFileUtil.getValue("qq_appid") + "&openid="
+                    + openid);
             JSONObject jsonObject = new JSONObject(wechatRes);
             String weChatNickName = jsonObject.getString("nickname");
             String sex = jsonObject.getString("gender");

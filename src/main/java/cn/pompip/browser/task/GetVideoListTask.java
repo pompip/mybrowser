@@ -1,9 +1,9 @@
 package cn.pompip.browser.task;
 
 
-import cn.pompip.browser.model.NewBean;
+import cn.pompip.browser.model.NewsBean;
 import cn.pompip.browser.service.NewsService;
-import cn.pompip.browser.util.HttpClientUtil;
+import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 
 import cn.pompip.browser.util.date.DateTimeUtil;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.net.URLEncoder;
 import java.util.*;
 
 @Component
@@ -29,6 +28,7 @@ public class GetVideoListTask {
 
     @Autowired
     private NewsService newsService;
+
 
     /*video	推荐
     subv_life	生活
@@ -102,16 +102,16 @@ public class GetVideoListTask {
         postData.put("update_version_code", "6002");
         postData.put("_rticket", System.nanoTime());
         String getUrl = PropertiesFileUtil.getValue("news_video_url") + "?";
-        for (String key : postData.keySet()) {
-            getUrl += key + "=" + URLEncoder.encode(postData.get(key).toString()) + "&";
-        }
-        getUrl = getUrl.substring(0, getUrl.length() - 1);
-        String data = HttpClientUtil.get(getUrl);
+//        for (String key : postData.keySet()) {
+//            getUrl += key + "=" + URLEncoder.encode(postData.get(key).toString()) + "&";
+//        }
+
+        String data = HttpUtil.get( getUrl,postData);
         JSONObject jsonObject = new JSONObject(data);
         String code = jsonObject.getString("message");
         int total = jsonObject.getInt("total_number");
         if ("success".equals(code) && total > 0) {
-            List<NewBean> addNews = new ArrayList<NewBean>();
+            List<NewsBean> addNews = new ArrayList<NewsBean>();
             JSONArray list = jsonObject.getJSONArray("data");
 
 
@@ -124,83 +124,34 @@ public class GetVideoListTask {
                     continue;
                 }
                 String urlMd5 = MD5.getMD5(content.getString("url"));
-                NewBean newBean = new NewBean();
-                newBean.setContent(content.toString());
-                newBean.setUrl(content.getString("url"));
-                newBean.setTitle(content.has("title") ? content.getString("title") : "");
-                newBean.setSource(content.getString("source").replaceAll("[\\x{10000}-\\x{10FFFF}]", ""));
-                newBean.setMiniimg(content.getJSONArray("large_image_list").toString());
-                newBean.setItemId(content.get("item_id").toString());
-                newBean.setGroupId(content.get("group_id").toString());
-                newBean.setVideoId(content.get("video_id").toString());
-                newBean.setPublishTime(DateTimeUtil.formatDate(content.getLong("publish_time")*1000));
+                NewsBean newsBean = new NewsBean();
+                newsBean.setContent(content.toString());
+                newsBean.setUrl(content.getString("url"));
+                newsBean.setTitle(content.has("title") ? content.getString("title") : "");
+                newsBean.setSource(content.getString("source").replaceAll("[\\x{10000}-\\x{10FFFF}]", ""));
+                newsBean.setMiniimg(content.getJSONArray("large_image_list").toString());
+                newsBean.setItemId(content.get("item_id").toString());
+                newsBean.setGroupId(content.get("group_id").toString());
+                newsBean.setVideoId(content.get("video_id").toString());
+                newsBean.setPublishTime(DateTimeUtil.formatDate(content.getLong("publish_time")*1000));
                 try {
-                    newBean.setVideoDuration(content.get("video_duration").toString());
+                    newsBean.setVideoDuration(content.get("video_duration").toString());
                 }catch (Exception e){
-                    newBean.setVideoDuration("100");
+                    newsBean.setVideoDuration("100");
                 }
 
-                newBean.setUrlmd5(urlMd5);
-                newBean.setType(2);
-                newBean.setNewsType(type);
+                newsBean.setUrlmd5(urlMd5);
+                newsBean.setType(2);
+                newsBean.setNewsType(type);
 
-                newBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
-                addNews.add(newBean);
+                newsBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
+                addNews.add(newsBean);
 
 
             }
-            return newsService.insertVideoBatch(addNews);
+             newsService.insertVideoBatch(addNews);
         }
         return 0;
     }
 
-    public static void main(String[] args) throws Exception {
-        Map<String, Object> postData = new HashMap<String, Object>();
-        postData.put("category", "subv_funny");
-        postData.put("refer", "1");
-        postData.put("count", "20");
-        postData.put("min_behot_time", System.currentTimeMillis());
-        postData.put("last_refresh_sub_entrance_interval", System.currentTimeMillis());
-        postData.put("loc_mode", "7");
-        postData.put("loc_time", System.currentTimeMillis());
-        postData.put("latitude", 11);
-        postData.put("longitude", 100);
-        postData.put("city", "北京");
-        postData.put("tt_from", "pull");
-        postData.put("cp", "50ac6a6a0a581q1");
-        postData.put("strict", "1");
-        postData.put("iid", "24142389236");
-        postData.put("device_id", "869271023736728");
-        postData.put("ac", "unknown");
-        postData.put("channel", "update");
-        postData.put("aid", "1183");
-        postData.put("app_name", "toutiaoribao_news");
-        postData.put("version_code", "600");
-        postData.put("version_name", "6.0.0");
-        postData.put("device_platform", "android");
-        postData.put("ab_client", "a1%2Cc4%2Ce1%2Cf2%2Cg2%2Cf7");
-        postData.put("ab_group", "z1");
-        postData.put("ab_feature", "z1");
-        postData.put("abflag", "3");
-        postData.put("ssmix", "a");
-        postData.put("device_type", "Redmi Note 3");
-        postData.put("device_brand", "Xiaomi");
-        postData.put("language", "zh");
-        postData.put("os_api", "25");
-        postData.put("os_version", "7.1.1");
-        postData.put("uuid", "869271023736728");
-        postData.put("openudid", "5eceab483511e317");
-        postData.put("manifest_version_code", "600");
-        postData.put("resolution", "1080*1920");
-        postData.put("dpi", "480");
-        postData.put("update_version_code", "6002");
-        postData.put("_rticket", System.nanoTime());
-        String url = PropertiesFileUtil.getValue("news_video_url") + "?";
-        for (String key : postData.keySet()) {
-            url += key + "=" + URLEncoder.encode(postData.get(key).toString()) + "&";
-        }
-        url = url.substring(0, url.length() - 1);
-        String data = HttpClientUtil.get(url);
-        System.out.println(data);
-    }
 }
