@@ -85,6 +85,16 @@ public class HttpUtil {
         return body.string();
     }
 
+    public static void get(String url, Map<String, Object> params, Callback callback) {
+        HttpUrl.Builder builder = HttpUrl.get(url).newBuilder();
+        params.forEach((key, value) -> builder.addQueryParameter(key, value.toString()));
+        Request request = new Request.Builder().get().url(builder.build())
+                .header("Content-Type", "text/html;charset=utf-8")
+                .build();
+        httpClient.newCall(request).enqueue(callback);
+
+    }
+
     public static String post(String url, Map<String, String> params) throws Exception {
         FormBody.Builder bodyBuilder = new FormBody.Builder();
         params.forEach(bodyBuilder::add);

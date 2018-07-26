@@ -6,8 +6,11 @@ import cn.pompip.browser.util.InfoMapEncrypt;
 import cn.pompip.browser.util.MyBeanUtils;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import cn.pompip.browser.util.security.ThreeDES;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -184,6 +187,12 @@ public class EasyTest {
 
         String data = HttpUtil.get(url, postData);
         System.out.println(data);
+    }
+
+    @Test
+  public   void TestJsoup() throws IOException {
+        Document document = Jsoup.connect("http://toutiao.com/group/6580535579916632590/").get();
+        System.out.println(document.body());
     }
 
 }

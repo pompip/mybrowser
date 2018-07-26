@@ -7,9 +7,8 @@ import cn.pompip.browser.model.NewsContentBean;
 import cn.pompip.browser.service.NewsService;
 import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.security.Base64;
-import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +31,8 @@ public class NewsController {
 
     @Autowired
     private NewsService newsService;
+    @Autowired
+    ObjectMapper objectMapper;
 
 
     @ResponseBody
@@ -91,7 +92,7 @@ public class NewsController {
 
     @ResponseBody
     @RequestMapping(value = "/getVideoInfo")
-    public Result getVideoInfo(HttpServletRequest request) throws Exception {
+    public Result getVideoInfo(HttpServletRequest request)  {
         Result result = new Result();
         String id = request.getParameter("id");
         String uid = request.getParameter("uid");
@@ -104,14 +105,21 @@ public class NewsController {
         CRC32 crc32 = new CRC32();
         crc32.update(params.getBytes());
         videoUrl = videoUrl + params + "&s=" + crc32.getValue();
-        String data = HttpUtil.get(videoUrl);
-        JSONObject jsonObject = new JSONObject(data);
-        if ("success".equals(jsonObject.getString("message")) && jsonObject.getInt("total") > 0) {
-            JSONObject videoData = jsonObject.getJSONObject("data").getJSONObject("video_list").getJSONObject("video_1");
+        JsonNode jsonObject =null;
+        try {
+            String data  = HttpUtil.get(videoUrl);
+             jsonObject = objectMapper.readTree(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+
+        if ("success".equals(jsonObject.get("message").asText()) && jsonObject.get("total").asInt() > 0) {
+            JsonNode videoData = jsonObject.get("data").get("video_list").get("video_1");
             Map<String,String> resultMap = new HashMap<>();
             resultMap.put("title", newsBean.getTitle());
-            resultMap.put("main_url", Base64.decodeString(videoData.getString("main_url")));
-            resultMap.put("backup_url_1", Base64.decodeString(videoData.getString("backup_url_1")));
+            resultMap.put("main_url", Base64.decodeString(videoData.get("main_url").asText()));
+            resultMap.put("backup_url_1", Base64.decodeString(videoData.get("backup_url_1").asText()));
             result.setCode(0);
             result.setData(resultMap);
         } else {

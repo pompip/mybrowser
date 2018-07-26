@@ -10,7 +10,8 @@ import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import cn.pompip.browser.util.date.DateTimeUtil;
 import cn.pompip.browser.util.security.MD5;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -85,6 +86,7 @@ public class UserController {
 
     }
 
+    ObjectMapper objectMapper = new ObjectMapper();
     @ResponseBody
     @RequestMapping(value = "/wechatLogin")
     public Result wechatLogin(HttpServletRequest request) throws Exception {
@@ -105,10 +107,10 @@ public class UserController {
         } else {
             String wechatRes = HttpUtil.get(PropertiesFileUtil.getValue("wechat_get_user_info_url")
                     + "?access_token=" + access_token + "&openid=" + openid);
-            JSONObject jsonObject = new JSONObject(wechatRes);
-            String weChatNickName = jsonObject.getString("nickname");
-            int sex = jsonObject.getInt("sex");
-            String headimgurl = jsonObject.getString("headimgurl");
+            JsonNode jsonObject = objectMapper.readTree(wechatRes);
+            String weChatNickName = jsonObject.get("nickname").asText();
+            int sex = jsonObject.get("sex").asInt();
+            String headimgurl = jsonObject.get("headimgurl").asText();
             user.setNickName(weChatNickName);
             user.setAvatar(headimgurl);
             user.setSex(sex == 1 ? 1 : 0);
@@ -150,10 +152,10 @@ public class UserController {
             String wechatRes = HttpUtil.get(PropertiesFileUtil.getValue("qq_get_user_info_url") + "?access_token="
                     + access_token + "&oauth_consumer_key=" + PropertiesFileUtil.getValue("qq_appid") + "&openid="
                     + openid);
-            JSONObject jsonObject = new JSONObject(wechatRes);
-            String weChatNickName = jsonObject.getString("nickname");
-            String sex = jsonObject.getString("gender");
-            String headimgurl = jsonObject.getString("figureurl_qq_1");
+            JsonNode jsonObject = objectMapper.readTree(wechatRes);
+            String weChatNickName = jsonObject.get("nickname").asText();
+            String sex = jsonObject.get("gender").asText();
+            String headimgurl = jsonObject.get("figureurl_qq_1").asText();
             user.setNickName(weChatNickName);
             user.setAvatar(headimgurl);
             user.setSex("男".equals(sex) ? 1 : 0);

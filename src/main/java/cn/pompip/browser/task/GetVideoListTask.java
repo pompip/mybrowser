@@ -4,21 +4,26 @@ package cn.pompip.browser.task;
 import cn.pompip.browser.model.NewsBean;
 import cn.pompip.browser.service.NewsService;
 import cn.pompip.browser.util.HttpUtil;
-import cn.pompip.browser.util.PropertiesFileUtil;
-
 import cn.pompip.browser.util.date.DateTimeUtil;
+import cn.pompip.browser.util.security.Base64;
 import cn.pompip.browser.util.security.MD5;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.CRC32;
 
 @Component
 public class GetVideoListTask {
@@ -58,8 +63,7 @@ public class GetVideoListTask {
         }
 
     }
-
-    @SuppressWarnings("unused")
+    ObjectMapper objectMapper = new ObjectMapper();
     private int getVideoListByType(String type) throws Exception {
         Map<String, Object> postData = new HashMap<String, Object>();
         postData.put("category", type);
@@ -101,57 +105,60 @@ public class GetVideoListTask {
         postData.put("dpi", "480");
         postData.put("update_version_code", "6002");
         postData.put("_rticket", System.nanoTime());
-        String getUrl = PropertiesFileUtil.getValue("news_video_url") + "?";
-//        for (String key : postData.keySet()) {
-//            getUrl += key + "=" + URLEncoder.encode(postData.get(key).toString()) + "&";
-//        }
+
+        String getUrl = "http://is.snssdk.com/api/news/feed/v46/";
 
         String data = HttpUtil.get( getUrl,postData);
-        JSONObject jsonObject = new JSONObject(data);
-        String code = jsonObject.getString("message");
-        int total = jsonObject.getInt("total_number");
+        JsonNode jsonObject = objectMapper.readTree(data);
+        String code = jsonObject.findValue("message").toString();
+        int total = jsonObject.findValue("total_number").asInt();
         if ("success".equals(code) && total > 0) {
             List<NewsBean> addNews = new ArrayList<NewsBean>();
-            JSONArray list = jsonObject.getJSONArray("data");
+            List<JsonNode> list = jsonObject.findValues("data");
 
 
-            for (int i = 0; i < list.length(); i++) {
-                JSONObject news = list.getJSONObject(i);
-                String contentStr = news.getString("content");
-                JSONObject content = new JSONObject(contentStr);
-
-                if (!content.has("url") || StringUtils.isEmpty(content.getJSONArray("large_image_list").toString())) {
-                    continue;
-                }
-                String urlMd5 = MD5.getMD5(content.getString("url"));
-                NewsBean newsBean = new NewsBean();
-                newsBean.setContent(content.toString());
-                newsBean.setUrl(content.getString("url"));
-                newsBean.setTitle(content.has("title") ? content.getString("title") : "");
-                newsBean.setSource(content.getString("source").replaceAll("[\\x{10000}-\\x{10FFFF}]", ""));
-                newsBean.setMiniimg(content.getJSONArray("large_image_list").toString());
-                newsBean.setItemId(content.get("item_id").toString());
-                newsBean.setGroupId(content.get("group_id").toString());
-                newsBean.setVideoId(content.get("video_id").toString());
-                newsBean.setPublishTime(DateTimeUtil.formatDate(content.getLong("publish_time")*1000));
-                try {
-                    newsBean.setVideoDuration(content.get("video_duration").toString());
-                }catch (Exception e){
-                    newsBean.setVideoDuration("100");
-                }
-
-                newsBean.setUrlmd5(urlMd5);
-                newsBean.setType(2);
-                newsBean.setNewsType(type);
-
-                newsBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
-                addNews.add(newsBean);
+           list.forEach(value->{
+               JsonNode contentStr = value.findValue("content");
+               NewsBean newsBean = parseObject(contentStr, type);
+               addNews.add(newsBean);
+           });
 
 
-            }
+
+
+
              newsService.insertVideoBatch(addNews);
         }
         return 0;
+    }
+
+    NewsBean parseObject(JsonNode content,String type){
+
+
+        String urlMd5 = MD5.getMD5(content.findValue("url").asText());
+        NewsBean newsBean = new NewsBean();
+        newsBean.setContent(content.toString());
+        newsBean.setUrl(content.findValue("url").asText());
+        newsBean.setTitle(content.has("title") ? content.findValue("title").asText() : "");
+        newsBean.setSource(content.findValue("source").asText().replaceAll("[\\x{10000}-\\x{10FFFF}]", ""));
+        newsBean.setMiniimg(content.findValue("large_image_list").toString());
+        newsBean.setItemId(content.get("item_id").toString());
+        newsBean.setGroupId(content.get("group_id").toString());
+        newsBean.setVideoId(content.get("video_id").toString());
+        newsBean.setPublishTime(DateTimeUtil.formatDate(content.findValue("publish_time").asLong()*1000));
+        try {
+            newsBean.setVideoDuration(content.get("video_duration").toString());
+        }catch (Exception e){
+            newsBean.setVideoDuration("100");
+        }
+
+        newsBean.setUrlmd5(urlMd5);
+        newsBean.setType(2);
+        newsBean.setNewsType(type);
+
+        newsBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
+        return newsBean;
+
     }
 
 }
