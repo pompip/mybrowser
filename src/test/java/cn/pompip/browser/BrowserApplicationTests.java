@@ -1,8 +1,11 @@
 package cn.pompip.browser;
 
+import cn.pompip.browser.dao.NewDao;
 import cn.pompip.browser.dao.NewsContentDao;
+import cn.pompip.browser.model.NewsBean;
 import cn.pompip.browser.model.NewsContentBean;
 import cn.pompip.browser.task.GetNewListTask;
+import cn.pompip.browser.task.GetVideoListTask;
 import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.PropertiesFileUtil;
 import cn.pompip.browser.util.date.DateTimeUtil;
@@ -13,12 +16,17 @@ import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
+import io.lettuce.core.GeoArgs;
 import org.jsoup.helper.DataUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -101,5 +109,34 @@ public class BrowserApplicationTests {
         bean.setNewsContent("hello wold");
         bean.setAuthor("liukechong");
         newsContentDao.save(bean);
+    }
+    @Autowired
+    GetVideoListTask task;
+    @Test
+    public void testParseVideo(){
+        NewsBean bean = new NewsBean();
+        bean.setVideoId("6579729789991518723");
+        bean.setTitle("hello");
+        task.parseVideo(bean);
+    }
+    @Autowired
+    NewDao newDao;
+    @Test
+    public void testVideoParese(){
+        for (int i=999;i<2000;i++){
+            Page<NewsBean> publishTime = newDao.findAll(PageRequest.of(i, 10, Sort.Direction.ASC, "publishTime"));
+            publishTime.getContent().forEach(newsBean -> {
+                if (newsBean.getType()==2){
+                    try {
+                        task.parseVideo(newsBean);
+                        System.out.println(newsBean.getTitle());
+                    }catch (Exception e){
+                        System.out.println("error------"+ newsBean.getTitle());
+                    }
+
+                }
+            });
+        }
+
     }
 }

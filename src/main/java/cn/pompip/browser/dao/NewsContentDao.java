@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface NewsContentDao extends JpaRepository<NewsContentBean,Long> {
 
-    NewsContentBean findNewsContentBeanByNewsId(Long id) throws Exception;
+    NewsContentBean findNewsContentBeanByNewsId(Long id) ;
 
 
 

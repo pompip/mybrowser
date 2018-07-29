@@ -2,12 +2,11 @@ package cn.pompip.browser.controller;
 
 
 import cn.pompip.browser.common.entity.Result;
+import cn.pompip.browser.exception.NoResultException;
 import cn.pompip.browser.model.NewsBean;
 import cn.pompip.browser.model.NewsContentBean;
+import cn.pompip.browser.model.VideoContentBean;
 import cn.pompip.browser.service.NewsService;
-import cn.pompip.browser.util.HttpUtil;
-import cn.pompip.browser.util.security.Base64;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.CRC32;
 
 
 @RequestMapping("/news")
@@ -92,41 +90,15 @@ public class NewsController {
 
     @ResponseBody
     @RequestMapping(value = "/getVideoInfo")
-    public Result getVideoInfo(HttpServletRequest request)  {
-        Result result = new Result();
+    public Result getVideoInfo(HttpServletRequest request) throws NoResultException {
+
         String id = request.getParameter("id");
         String uid = request.getParameter("uid");
         String url = request.getParameter("url");
 
-        NewsBean newsBean = newsService.getById(Long.parseLong(id));
-        String videoUrl = "http://ib.365yg.com";
-        String r = System.currentTimeMillis() + "";
-        String params = "/video/urls/v/1/toutiao/mp4/" + newsBean.getVideoId() + "?r=" + r;
-        CRC32 crc32 = new CRC32();
-        crc32.update(params.getBytes());
-        videoUrl = videoUrl + params + "&s=" + crc32.getValue();
-        JsonNode jsonObject =null;
-        try {
-            String data  = HttpUtil.get(videoUrl);
-             jsonObject = objectMapper.readTree(data);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
 
-        if ("success".equals(jsonObject.get("message").asText()) && jsonObject.get("total").asInt() > 0) {
-            JsonNode videoData = jsonObject.get("data").get("video_list").get("video_1");
-            Map<String,String> resultMap = new HashMap<>();
-            resultMap.put("title", newsBean.getTitle());
-            resultMap.put("main_url", Base64.decodeString(videoData.get("main_url").asText()));
-            resultMap.put("backup_url_1", Base64.decodeString(videoData.get("backup_url_1").asText()));
-            result.setCode(0);
-            result.setData(resultMap);
-        } else {
-            result.setCode(1);
-            result.setCode(1001);
-        }
-        return result;
+        VideoContentBean videoContentBean = newsService.findVideoBeanById(Long.parseLong(id));
+        return Result.success(videoContentBean);
     }
 
     @GetMapping("/newsContentH5")

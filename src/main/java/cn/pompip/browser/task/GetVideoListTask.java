@@ -2,6 +2,7 @@ package cn.pompip.browser.task;
 
 
 import cn.pompip.browser.model.NewsBean;
+import cn.pompip.browser.model.VideoContentBean;
 import cn.pompip.browser.service.NewsService;
 import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.date.DateTimeUtil;
@@ -11,15 +12,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +45,7 @@ public class GetVideoListTask {
     subv_boutique	原创
     subv_broaden_view	开眼*/
 //    @Scheduled(cron = " 0/30 * * * * ?")
-    @Scheduled(fixedDelay = 30*60*1000)
-    @Transactional
+    @Scheduled(fixedDelay = 30 * 60 * 1000)
     public void run() {
         log.info("-------------------begin GetVideoListTask-------------------");
         try {
@@ -63,7 +59,9 @@ public class GetVideoListTask {
         }
 
     }
+
     ObjectMapper objectMapper = new ObjectMapper();
+
     private int getVideoListByType(String type) throws Exception {
         Map<String, Object> postData = new HashMap<String, Object>();
         postData.put("category", type);
@@ -108,33 +106,25 @@ public class GetVideoListTask {
 
         String getUrl = "http://is.snssdk.com/api/news/feed/v46/";
 
-        String data = HttpUtil.get( getUrl,postData);
+        String data = HttpUtil.get(getUrl, postData);
         JsonNode jsonObject = objectMapper.readTree(data);
         String code = jsonObject.findValue("message").toString();
         int total = jsonObject.findValue("total_number").asInt();
         if ("success".equals(code) && total > 0) {
-            List<NewsBean> addNews = new ArrayList<NewsBean>();
             List<JsonNode> list = jsonObject.findValues("data");
+            list.forEach(value -> {
+                JsonNode contentStr = value.findValue("content");
+                NewsBean newsBean = parseObject(contentStr, type);
+                parseVideo(newsBean);
 
-
-           list.forEach(value->{
-               JsonNode contentStr = value.findValue("content");
-               NewsBean newsBean = parseObject(contentStr, type);
-               addNews.add(newsBean);
-           });
-
-
-
-
-
-             newsService.insertVideoBatch(addNews);
+            });
         }
         return 0;
     }
 
-    NewsBean parseObject(JsonNode content,String type){
 
 
+    NewsBean parseObject(JsonNode content, String type) {
         String urlMd5 = MD5.getMD5(content.findValue("url").asText());
         NewsBean newsBean = new NewsBean();
         newsBean.setContent(content.toString());
@@ -145,10 +135,10 @@ public class GetVideoListTask {
         newsBean.setItemId(content.get("item_id").toString());
         newsBean.setGroupId(content.get("group_id").toString());
         newsBean.setVideoId(content.get("video_id").toString());
-        newsBean.setPublishTime(DateTimeUtil.formatDate(content.findValue("publish_time").asLong()*1000));
+        newsBean.setPublishTime(DateTimeUtil.formatDate(content.findValue("publish_time").asLong() * 1000));
         try {
             newsBean.setVideoDuration(content.get("video_duration").toString());
-        }catch (Exception e){
+        } catch (Exception e) {
             newsBean.setVideoDuration("100");
         }
 
@@ -157,8 +147,40 @@ public class GetVideoListTask {
         newsBean.setNewsType(type);
 
         newsBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
+
         return newsBean;
 
+    }
+
+    @Async
+    public VideoContentBean parseVideo(NewsBean newsBean) {
+        String videoUrl = "http://ib.365yg.com";
+        String r = System.currentTimeMillis() + "";
+        String params = "/video/urls/v/1/toutiao/mp4/" + newsBean.getVideoId() + "?r=" + r;
+        CRC32 crc32 = new CRC32();
+        crc32.update(params.getBytes());
+        videoUrl = videoUrl + params + "&s=" + crc32.getValue();
+        JsonNode jsonObject = null;
+        try {
+            String data = HttpUtil.get(videoUrl);
+            jsonObject = objectMapper.readTree(data);
+        } catch (Exception e) {
+            throw new RuntimeException();
+        }
+
+        if ("success".equals(jsonObject.get("message").asText()) && jsonObject.get("total").asInt() > 0) {
+            JsonNode videoData = jsonObject.get("data").get("video_list").get("video_1");
+            VideoContentBean videoContentBean = new VideoContentBean();
+            videoContentBean.setVideoId(newsBean.getVideoId());
+            videoContentBean.setTitle(newsBean.getTitle());
+            videoContentBean.setMainUrl( Base64.decodeString(videoData.get("main_url").asText()));
+            videoContentBean.setBackupUrl( Base64.decodeString(videoData.get("backup_url_1").asText()));
+
+            newsService.insertVideo(newsBean, videoContentBean);
+            return videoContentBean;
+        }else {
+            return  null;
+        }
     }
 
 }
