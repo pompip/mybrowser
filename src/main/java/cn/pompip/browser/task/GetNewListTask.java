@@ -107,7 +107,6 @@ public class GetNewListTask {
         String urlmd5 = MD5.getMD5(url);
 
         NewsBean news = new NewsBean();
-        news.setContent(jsonNode.toString());
         news.setTitle(jsonNode.findValue("topic").asText());
         news.setSource(jsonNode.findValue("source").asText());
         news.setPublishTime(jsonNode.findValue("date").asText());
@@ -116,7 +115,6 @@ public class GetNewListTask {
         news.setRowkey(jsonNode.findValue("rowkey").asText());
         news.setSource(jsonNode.findValue("source").asText());
         news.setNewsType(jsonNode.findValue("type").asText());
-        news.setType(1);
         news.setUrl(url);
         news.setUrlmd5(urlmd5);
         news.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());

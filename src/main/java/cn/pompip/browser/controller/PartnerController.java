@@ -28,13 +28,18 @@ public class PartnerController {
         PartnerBean partner = new PartnerBean();
         partner.setStatus(0);
         List<PartnerBean> list = partnerService.queryList(partner);
-        for(int i=0;i<24;i++){
-            PartnerBean menuBean = new PartnerBean();
-            menuBean.setTitle("hello world");
-            menuBean.setUrl("http://m.baidu.com");
-            menuBean.setIcon("http://baidu.com/favicon.ico");
-            list.add(menuBean);
-        }
+
+        PartnerBean menuBean = new PartnerBean();
+        menuBean.setTitle("hello world");
+        menuBean.setUrl("http://m.baidu.com");
+        menuBean.setIcon("http://baidu.com/favicon.ico");
+        list.add(menuBean);
+
+        PartnerBean menuBean1 = new PartnerBean();
+        menuBean1.setTitle("hello world");
+        menuBean1.setUrl("http:/bbs.ngacn.cc");
+        menuBean1.setIcon("http://bbs.ngacn.cc/favicon.ico");
+        list.add(menuBean1);
 
         return Result.success(list);
 

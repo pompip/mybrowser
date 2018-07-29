@@ -18,19 +18,10 @@ public class NewsBean implements Serializable {
     @GeneratedValue
     private Long id;//主键
 
-    private String code;
-
     @Column(unique = true)
     private String urlmd5;
 
     private String url;
-    @Column(columnDefinition = "TEXT")
-    private String content;
-
-    private Integer status;
-
-    private Integer type;
-
     private String newsType;
 
     private String source;
@@ -45,26 +36,16 @@ public class NewsBean implements Serializable {
 
     private String title;
 
-    @JsonSerialize(using = BrowserJsonSerializer.class)
-    private String largeImageList;
-
-    private String itemId;
-
-    private String groupId;
-
-    private String videoId;
-
-    private String videoDuration;
 
     private String createTime;
 
     private String updateTime;
 
 
-    private String remark;
-
     @Column(columnDefinition = "DATETIME")
     private String publishTime;
+    @Transient
+    private String type = "1";
 
     public Long getId() {
         return id;
@@ -74,13 +55,7 @@ public class NewsBean implements Serializable {
         this.id = id;
     }
 
-    public String getCode() {
-        return code;
-    }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
 
     public String getUrlmd5() {
         return urlmd5;
@@ -97,31 +72,6 @@ public class NewsBean implements Serializable {
     public void setUrl(String url) {
         this.url = url;
     }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Integer getType() {
-        return type;
-    }
-
-    public void setType(Integer type) {
-        this.type = type;
-    }
-
 
     public String getNewsType() {
         return newsType;
@@ -171,46 +121,6 @@ public class NewsBean implements Serializable {
         this.title = title;
     }
 
-    public String getLargeImageList() {
-        return largeImageList;
-    }
-
-    public void setLargeImageList(String largeImageList) {
-        this.largeImageList = largeImageList;
-    }
-
-    public String getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(String itemId) {
-        this.itemId = itemId;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-
-    public String getVideoId() {
-        return videoId;
-    }
-
-    public void setVideoId(String videoId) {
-        this.videoId = videoId;
-    }
-
-    public String getVideoDuration() {
-        return videoDuration;
-    }
-
-    public void setVideoDuration(String videoDuration) {
-        this.videoDuration = videoDuration;
-    }
-
     public String getCreateTime() {
         return createTime;
     }
@@ -227,14 +137,6 @@ public class NewsBean implements Serializable {
         this.updateTime = updateTime;
     }
 
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
 
     public String getPublishTime() {
         return publishTime;
@@ -244,5 +146,7 @@ public class NewsBean implements Serializable {
         this.publishTime = publishTime;
     }
 
-
+    public String getType() {
+        return type;
+    }
 }

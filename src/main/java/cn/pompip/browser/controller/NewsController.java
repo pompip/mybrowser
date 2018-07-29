@@ -5,8 +5,10 @@ import cn.pompip.browser.common.entity.Result;
 import cn.pompip.browser.exception.NoResultException;
 import cn.pompip.browser.model.NewsBean;
 import cn.pompip.browser.model.NewsContentBean;
+import cn.pompip.browser.model.VideoBean;
 import cn.pompip.browser.model.VideoContentBean;
 import cn.pompip.browser.service.NewsService;
+import cn.pompip.browser.service.VideoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,23 +33,21 @@ public class NewsController {
     private NewsService newsService;
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    VideoService videoService;
 
 
     @ResponseBody
     @RequestMapping(value = "/getNewsList")
-    public Result getNewList(HttpServletRequest request )  {
-//        String type = request.getParameter("type");
-        String newsType=request.getParameter("newsType");
-        String pageNum = request.getParameter("pageNum");
-        String pageSize = request.getParameter("pageSize");
+    public Result getNewList(String newsType,int pageNum,int pageSize ) {
+        if (newsService.existNewsType(newsType)) {
+            List<NewsBean> newsBeanList = newsService.pageList(newsType, pageNum, pageSize);
+            return Result.success(newsBeanList);
+        } else {
+            List<VideoBean> videoBeans = videoService.pageList(newsType, pageNum, pageSize);
+            return Result.success(videoBeans);
+        }
 
-        NewsBean newsBean = new NewsBean();
-//        newsBean.setType(Integer.parseInt(type));
-        newsBean.setNewsType(newsType);
-        List<NewsBean> newsBeanList = newsService.pageList(newsBean, Integer.parseInt(pageNum), Integer.parseInt(pageSize));
-
-
-        return Result.success(newsBeanList);
 
     }
 
@@ -63,8 +63,20 @@ public class NewsController {
 
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/getVideoInfo")
+    public Result getVideoInfo(HttpServletRequest request) throws NoResultException {
+
+        String id = request.getParameter("id");
+        String uid = request.getParameter("uid");
+        String url = request.getParameter("url");
+
+        VideoContentBean videoContentBean = videoService.findVideoBeanById(Long.parseLong(id));
+        return Result.success(videoContentBean);
+    }
+
     @RequestMapping(value = "/share")
-    public ModelAndView shareNew(HttpServletRequest request , ModelAndView mav) throws IOException {
+    public ModelAndView shareNew(HttpServletRequest request, ModelAndView mav) throws IOException {
         String id = request.getParameter("id");
         //String urlMd5=request.getParameter("urlMd5");
         //String url=request.getParameter("url");
@@ -88,26 +100,13 @@ public class NewsController {
 
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/getVideoInfo")
-    public Result getVideoInfo(HttpServletRequest request) throws NoResultException {
-
-        String id = request.getParameter("id");
-        String uid = request.getParameter("uid");
-        String url = request.getParameter("url");
-
-
-        VideoContentBean videoContentBean = newsService.findVideoBeanById(Long.parseLong(id));
-        return Result.success(videoContentBean);
-    }
 
     @GetMapping("/newsContentH5")
-    public Map<String,String> getNewsContentH5(String id ){
-        Map<String ,String> map = new HashMap<>();
+    public Map<String, String> getNewsContentH5(String id) {
+        Map<String, String> map = new HashMap<>();
 
         return map;
     }
-
 
 
 }

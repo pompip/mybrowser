@@ -112,31 +112,8 @@ public class BrowserApplicationTests {
     }
     @Autowired
     GetVideoListTask task;
-    @Test
-    public void testParseVideo(){
-        NewsBean bean = new NewsBean();
-        bean.setVideoId("6579729789991518723");
-        bean.setTitle("hello");
-        task.parseVideo(bean);
-    }
+
     @Autowired
     NewDao newDao;
-    @Test
-    public void testVideoParese(){
-        for (int i=999;i<2000;i++){
-            Page<NewsBean> publishTime = newDao.findAll(PageRequest.of(i, 10, Sort.Direction.ASC, "publishTime"));
-            publishTime.getContent().forEach(newsBean -> {
-                if (newsBean.getType()==2){
-                    try {
-                        task.parseVideo(newsBean);
-                        System.out.println(newsBean.getTitle());
-                    }catch (Exception e){
-                        System.out.println("error------"+ newsBean.getTitle());
-                    }
 
-                }
-            });
-        }
-
-    }
 }

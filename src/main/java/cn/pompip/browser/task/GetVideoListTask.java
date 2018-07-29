@@ -1,9 +1,9 @@
 package cn.pompip.browser.task;
 
 
-import cn.pompip.browser.model.NewsBean;
+import cn.pompip.browser.model.VideoBean;
 import cn.pompip.browser.model.VideoContentBean;
-import cn.pompip.browser.service.NewsService;
+import cn.pompip.browser.service.VideoService;
 import cn.pompip.browser.util.HttpUtil;
 import cn.pompip.browser.util.date.DateTimeUtil;
 import cn.pompip.browser.util.security.Base64;
@@ -29,7 +29,7 @@ public class GetVideoListTask {
     private Log log = LogFactory.getLog(GetVideoListTask.class);
 
     @Autowired
-    private NewsService newsService;
+    private VideoService videoService;
 
 
     /*video	推荐
@@ -114,7 +114,7 @@ public class GetVideoListTask {
             List<JsonNode> list = jsonObject.findValues("data");
             list.forEach(value -> {
                 JsonNode contentStr = value.findValue("content");
-                NewsBean newsBean = parseObject(contentStr, type);
+                VideoBean newsBean = parseObject(contentStr, type);
                 parseVideo(newsBean);
 
             });
@@ -124,10 +124,10 @@ public class GetVideoListTask {
 
 
 
-    NewsBean parseObject(JsonNode content, String type) {
+    VideoBean parseObject(JsonNode content, String type) {
         String urlMd5 = MD5.getMD5(content.findValue("url").asText());
-        NewsBean newsBean = new NewsBean();
-        newsBean.setContent(content.toString());
+        VideoBean newsBean = new VideoBean();
+//        newsBean.setContent(content.toString());
         newsBean.setUrl(content.findValue("url").asText());
         newsBean.setTitle(content.has("title") ? content.findValue("title").asText() : "");
         newsBean.setSource(content.findValue("source").asText().replaceAll("[\\x{10000}-\\x{10FFFF}]", ""));
@@ -143,7 +143,6 @@ public class GetVideoListTask {
         }
 
         newsBean.setUrlmd5(urlMd5);
-        newsBean.setType(2);
         newsBean.setNewsType(type);
 
         newsBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
@@ -153,7 +152,7 @@ public class GetVideoListTask {
     }
 
     @Async
-    public VideoContentBean parseVideo(NewsBean newsBean) {
+    public VideoContentBean parseVideo(VideoBean newsBean) {
         String videoUrl = "http://ib.365yg.com";
         String r = System.currentTimeMillis() + "";
         String params = "/video/urls/v/1/toutiao/mp4/" + newsBean.getVideoId() + "?r=" + r;
@@ -176,7 +175,7 @@ public class GetVideoListTask {
             videoContentBean.setMainUrl( Base64.decodeString(videoData.get("main_url").asText()));
             videoContentBean.setBackupUrl( Base64.decodeString(videoData.get("backup_url_1").asText()));
 
-            newsService.insertVideo(newsBean, videoContentBean);
+            videoService.insertVideo(newsBean, videoContentBean);
             return videoContentBean;
         }else {
             return  null;
