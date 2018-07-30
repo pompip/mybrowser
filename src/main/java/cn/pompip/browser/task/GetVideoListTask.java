@@ -10,6 +10,10 @@ import cn.pompip.browser.util.security.Base64;
 import cn.pompip.browser.util.security.MD5;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +21,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,21 +54,18 @@ public class GetVideoListTask {
     @Scheduled(fixedDelay = 30 * 60 * 1000)
     public void run() {
         log.info("-------------------begin GetVideoListTask-------------------");
-        try {
-            for (String type : videoTypes) {
-                log.info("get " + type + " count:" + this.getVideoListByType(type));
-            }
-            log.info("-------------------end GetVideoListTask-------------------");
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.info("GetVideoListTask error");
+        for (String type : videoTypes) {
+            log.info("get " + type);
+            this.getVideoListByType(type);
         }
+        log.info("-------------------end GetVideoListTask-------------------");
+
 
     }
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    private int getVideoListByType(String type) throws Exception {
+    private void getVideoListByType(String type) {
         Map<String, Object> postData = new HashMap<String, Object>();
         postData.put("category", type);
         postData.put("refer", "1");
@@ -106,38 +109,71 @@ public class GetVideoListTask {
 
         String getUrl = "http://is.snssdk.com/api/news/feed/v46/";
 
-        String data = HttpUtil.get(getUrl, postData);
-        JsonNode jsonObject = objectMapper.readTree(data);
-        String code = jsonObject.findValue("message").toString();
+
+        HttpUtil.get(getUrl, postData, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+
+                log.error("不能获取视频列表",e );
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                ResponseBody body = response.body();
+                if (body == null) {
+                    log.error("视频列表为空");
+                    return;
+                }
+                parseVideoList(body.byteStream(), type);
+
+            }
+        });
+
+
+    }
+
+    private void parseVideoList(InputStream inputStream, String type) throws IOException {
+        JsonNode jsonObject = objectMapper.readTree(inputStream);
+        String code = jsonObject.findValue("message").asText();
         int total = jsonObject.findValue("total_number").asInt();
         if ("success".equals(code) && total > 0) {
-            List<JsonNode> list = jsonObject.findValues("data");
+            List<String> list = jsonObject.findValue("data").findValuesAsText("content");
+            log.info("获取 " + list.size() + " 条视频");
             list.forEach(value -> {
-                JsonNode contentStr = value.findValue("content");
+                JsonNode contentStr = null;
+                try {
+                    contentStr = objectMapper.readTree(value);
+                } catch (IOException e) {
+                    return;
+                }
                 VideoBean newsBean = parseObject(contentStr, type);
+                if (newsBean == null) {
+                    return;
+                }
                 parseVideo(newsBean);
 
             });
         }
-        return 0;
     }
 
 
-
     VideoBean parseObject(JsonNode content, String type) {
-        String urlMd5 = MD5.getMD5(content.findValue("url").asText());
+        JsonNode url = content.findValue("url");
+        if (url == null) {
+            return null;
+        }
+        String urlMd5 = MD5.getMD5(url.asText());
         VideoBean newsBean = new VideoBean();
-//        newsBean.setContent(content.toString());
         newsBean.setUrl(content.findValue("url").asText());
         newsBean.setTitle(content.has("title") ? content.findValue("title").asText() : "");
         newsBean.setSource(content.findValue("source").asText().replaceAll("[\\x{10000}-\\x{10FFFF}]", ""));
         newsBean.setMiniimg(content.findValue("large_image_list").toString());
-        newsBean.setItemId(content.get("item_id").toString());
-        newsBean.setGroupId(content.get("group_id").toString());
-        newsBean.setVideoId(content.get("video_id").toString());
+        newsBean.setItemId(content.get("item_id").asText());
+        newsBean.setGroupId(content.get("group_id").asText());
+        newsBean.setVideoId(content.get("video_id").asText());
         newsBean.setPublishTime(DateTimeUtil.formatDate(content.findValue("publish_time").asLong() * 1000));
         try {
-            newsBean.setVideoDuration(content.get("video_duration").toString());
+            newsBean.setVideoDuration(content.get("video_duration").asText());
         } catch (Exception e) {
             newsBean.setVideoDuration("100");
         }
@@ -164,7 +200,7 @@ public class GetVideoListTask {
             String data = HttpUtil.get(videoUrl);
             jsonObject = objectMapper.readTree(data);
         } catch (Exception e) {
-            throw new RuntimeException();
+            log.error("解析视频错误", e);
         }
 
         if ("success".equals(jsonObject.get("message").asText()) && jsonObject.get("total").asInt() > 0) {
@@ -172,13 +208,18 @@ public class GetVideoListTask {
             VideoContentBean videoContentBean = new VideoContentBean();
             videoContentBean.setVideoId(newsBean.getVideoId());
             videoContentBean.setTitle(newsBean.getTitle());
-            videoContentBean.setMainUrl( Base64.decodeString(videoData.get("main_url").asText()));
-            videoContentBean.setBackupUrl( Base64.decodeString(videoData.get("backup_url_1").asText()));
+            videoContentBean.setMainUrl(Base64.decodeString(videoData.get("main_url").asText()));
+            videoContentBean.setBackupUrl(Base64.decodeString(videoData.get("backup_url_1").asText()));
 
-            videoService.insertVideo(newsBean, videoContentBean);
+            try {
+                videoService.insertVideo(newsBean, videoContentBean);
+            } catch (Exception e) {
+                log.error("插入报错视频", e);
+            }
+
             return videoContentBean;
-        }else {
-            return  null;
+        } else {
+            return null;
         }
     }
 

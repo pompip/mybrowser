@@ -112,8 +112,16 @@ public class BrowserApplicationTests {
     }
     @Autowired
     GetVideoListTask task;
+    @Test
+    public  void testGetVideo(){
+        task.run();
+    }
+
 
     @Autowired
-    NewDao newDao;
+    GetNewListTask newsTask;
+    @Test public void testGetNews(){
+        newsTask.generateResult("kexue");
+    }
 
 }

@@ -7,6 +7,9 @@ import cn.pompip.browser.model.NewsBean;
 import cn.pompip.browser.model.VideoBean;
 import cn.pompip.browser.model.VideoContentBean;
 import cn.pompip.browser.task.GetVideoListTask;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +21,8 @@ import java.util.List;
 
 @Service
 public class VideoService {
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private VideoContentDao videoContentDao;
 
@@ -27,7 +32,7 @@ public class VideoService {
     public List<VideoBean> pageList(String newsType, int pageNum, int pageSize) {
         VideoBean videoBean = new VideoBean();
         videoBean.setNewsType(newsType);
-        return videoDao.findAll(Example.of(videoBean), PageRequest.of(pageNum - 1, pageSize, Sort.Direction.DESC, "publishTime")).getContent();
+        return videoDao.findAll(Example.of(videoBean), PageRequest.of(pageNum - 1, pageSize, Sort.Direction.DESC, "createTime")).getContent();
     }
 
     @Transactional
@@ -37,6 +42,9 @@ public class VideoService {
             videoDao.save(newsBean);
         }
 
+       if (videoContentDao.exists(Example.of(videoContentBean))){
+            return;
+       }
         videoContentDao.save(videoContentBean);
 
     }

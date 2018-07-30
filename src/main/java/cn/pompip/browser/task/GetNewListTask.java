@@ -50,7 +50,7 @@ public class GetNewListTask {
 	kexue	科学
 	hulianwang	互联网
 	shuma	数码*/
-    public static String[] newTypes = {"toutiao", "shehui", "guoji", "guonei", "yule", "keji", "junshi", "shishang", "caijing", "youxi", "qiche", "xiaohua", "jiankang", "tiyu", "xingzu", "kexue", "hulianwang", "shuma"};
+    public static String[] newTypes = {"shehui", "guoji", "guonei", "yule", "keji", "junshi", "shishang", "caijing", "youxi", "qiche", "xiaohua", "jiankang", "tiyu", "xingzu", "kexue", "hulianwang", "shuma"};
 
     private Log log = LogFactory.getLog(GetNewListTask.class);
 
@@ -68,7 +68,7 @@ public class GetNewListTask {
 
     }
 
-    void generateResult(String type) {
+  public   void generateResult(String type) {
         Map<String, Object> params = new HashMap<>();
         params.put("type", type);
         params.put("qid", "qid02561");
@@ -97,13 +97,18 @@ public class GetNewListTask {
         String stat = jsonNode.findValue("stat").asText();
         if ("1".equals(stat)) {
             List<JsonNode> data = jsonNode.findValues("data");
+            log.info("获取 "+ data.size() +"条新闻");
             data.forEach(this::saveResult);
         }
     }
 
     @Async
     void saveResult(JsonNode jsonNode) {
-        String url = jsonNode.findValue("url").asText();
+        JsonNode urlNode = jsonNode.findValue("url");
+        if (urlNode ==null){
+            return;
+        }
+        String url = urlNode.asText();
         String urlmd5 = MD5.getMD5(url);
 
         NewsBean news = new NewsBean();
@@ -122,12 +127,12 @@ public class GetNewListTask {
         try {
             NewsContentBean newsContentBean = generateContent(url);
             newsService.insertNews(news, newsContentBean);
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("插入news报错",e);
         }
     }
 
-    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
 
     private NewsContentBean generateContent(String url) throws IOException, ParseException {
         Document htmlDom = Jsoup.connect(url).get();
@@ -141,7 +146,7 @@ public class GetNewListTask {
         NewsContentBean newsContentBean = new NewsContentBean();
         newsContentBean.setAuthor(source);
         newsContentBean.setNewsContent(content);
-        newsContentBean.setNewsTime(DateTimeUtil.formatDate(simpleDateFormat.parse(time)));
+        newsContentBean.setNewsTime(DateTimeUtil.formatDate(DateTimeUtil.string2Date(time)));
         newsContentBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
         newsContentBean.setNewsTitle(title);
         newsContentBean.setUrl(url);

@@ -30,7 +30,7 @@ public class NewsService {
         NewsBean probe = new NewsBean();
         probe.setNewsType(newsType);
 
-        return newDao.findAll(Example.of(probe), PageRequest.of(pageNum - 1, pageSize, Sort.Direction.DESC, "publishTime")).getContent();
+        return newDao.findAll(Example.of(probe), PageRequest.of(pageNum - 1, pageSize, Sort.Direction.DESC, "createTime")).getContent();
     }
 
     public boolean existNewsType(String newsType){
@@ -40,6 +40,8 @@ public class NewsService {
 
     @Transactional
     public void insertNews(NewsBean newsBean, NewsContentBean newsContentBean) {
+        boolean exists = newDao.existsByUrlmd5(newsBean.getUrlmd5());
+        if (exists) return;
         NewsBean news = newDao.save(newsBean);
         newsContentBean.setNewsId(news.getId());
         newsContentDao.save(newsContentBean);
