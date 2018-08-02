@@ -185,7 +185,7 @@ public class EasyTest {
         String url = PropertiesFileUtil.getValue("news_video_url");
 
 
-        String data = HttpUtil.get(url, postData);
+        String data = HttpUtil.get(url, postData).string();
         System.out.println(data);
     }
 

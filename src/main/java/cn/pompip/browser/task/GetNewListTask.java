@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,11 @@ public class GetNewListTask {
 	kexue	科学
 	hulianwang	互联网
 	shuma	数码*/
-    public static String[] newTypes = {"shehui", "guoji", "guonei", "yule", "keji", "junshi", "shishang", "caijing", "youxi", "qiche", "xiaohua", "jiankang", "tiyu", "xingzu", "kexue", "hulianwang", "shuma"};
+    public static String[] newTypes = {"toutiao","shehui", "guoji",
+            "guonei", "yule", "keji", "junshi", "shishang", "caijing",
+            "youxi", "qiche", "xiaohua", "jiankang", "tiyu", "xingzu",
+            "kexue", "hulianwang", "shuma","lvyou","qinggan","xinwen","yuer","lishi"};
+
 
     private Log log = LogFactory.getLog(GetNewListTask.class);
 
@@ -58,55 +63,70 @@ public class GetNewListTask {
     private NewsService newsService;
 
     @Scheduled(fixedDelay = 30 * 60 * 1000)
-//    @Scheduled(cron = " 0/30 * * * * ?")
+@Async
     public void run() {
         log.info("-------------------begin GetNewListTask-------------------");
         for (String type : newTypes) {
-            generateResult(type);
+            int generateResult = generateResult(type);
+            log.info("get " + type +" num: "+ generateResult);
+
         }
         log.info("-------------------end GetNewListTask-------------------");
 
     }
 
-  public   void generateResult(String type) {
+    public int generateResult(String type) {
         Map<String, Object> params = new HashMap<>();
         params.put("type", type);
         params.put("qid", "qid02561");
-        HttpUtil.get("http://newswifiapi.dftoutiao.com/jsonnew/refresh", params, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                log.info("body 为空,无法获取新闻");
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                ResponseBody body = response.body();
-                if (body != null) {
-                    parseResult(body.byteStream());
-                } else {
-                    log.info("body 为空,无法获取新闻");
+        int num = 0;
+        try {
+            ResponseBody responseBody = HttpUtil.get("http://newswifiapi.dftoutiao.com/jsonnew/refresh", params);
+            ArrayList<NewsBean> newsBeanArrayList = parseResult(responseBody.byteStream(),type);
+            for (NewsBean newsBean : newsBeanArrayList) {
+                try {
+                    NewsContentBean newsContentBean = generateContent(newsBean.getUrl());
+                    if (newsContentBean!=null){
+                        newsService.insertNews(newsBean, newsContentBean);
+                        num++;
+                    }
+                }catch (Exception e){
+                    log.error("插入新闻报错",e);
                 }
             }
-        });
+
+        } catch (IOException e) {
+            log.error("获取新闻列表报错",e);
+        }
+        return num;
     }
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    ObjectMapper objectMapper;
 
-    void parseResult(InputStream result) throws IOException {
+    ArrayList<NewsBean> parseResult(InputStream result,String type) throws IOException {
         JsonNode jsonNode = objectMapper.readTree(result);
         String stat = jsonNode.findValue("stat").asText();
+        ArrayList<NewsBean> newsBeanArrayList = new ArrayList<>();
         if ("1".equals(stat)) {
             List<JsonNode> data = jsonNode.findValues("data");
-            log.info("获取 "+ data.size() +"条新闻");
-            data.forEach(this::saveResult);
+            log.info("获取 " + data.size() + "条新闻");
+            data.forEach(jsonNode1 -> {
+                        NewsBean newsBean = saveResult(jsonNode1);
+                        if (newsBean != null) {
+                        newsBean.setNewsType(type);
+                            newsBeanArrayList.add(newsBean);
+                        }
+                    }
+            );
         }
+        return newsBeanArrayList;
     }
 
-    @Async
-    void saveResult(JsonNode jsonNode) {
+    NewsBean saveResult(JsonNode jsonNode) {
         JsonNode urlNode = jsonNode.findValue("url");
-        if (urlNode ==null){
-            return;
+        if (urlNode == null) {
+            return null;
         }
         String url = urlNode.asText();
         String urlmd5 = MD5.getMD5(url);
@@ -124,17 +144,12 @@ public class GetNewListTask {
         news.setUrlmd5(urlmd5);
         news.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
 
-        try {
-            NewsContentBean newsContentBean = generateContent(url);
-            newsService.insertNews(news, newsContentBean);
-        } catch (Exception e) {
-            log.error("插入news报错",e);
-        }
+
+        return news;
     }
 
 
-
-    private NewsContentBean generateContent(String url) throws IOException, ParseException {
+    private NewsContentBean generateContent(String url) throws IOException {
         Document htmlDom = Jsoup.connect(url).get();
         String title = htmlDom.getElementsByClass("title").get(0).text();
         String timeSrc = htmlDom.getElementsByClass("src").get(0).text();

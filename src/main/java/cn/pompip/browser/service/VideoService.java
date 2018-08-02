@@ -41,11 +41,10 @@ public class VideoService {
         if (!videoDao.existsByUrlmd5(newsBean.getUrlmd5())) {
             videoDao.save(newsBean);
         }
-
-       if (videoContentDao.exists(Example.of(videoContentBean))){
-            return;
-       }
-        videoContentDao.save(videoContentBean);
+        if (videoContentDao.exists(Example.of(videoContentBean))) {
+            return ;
+        }
+        VideoContentBean save = videoContentDao.save(videoContentBean);
 
     }
 

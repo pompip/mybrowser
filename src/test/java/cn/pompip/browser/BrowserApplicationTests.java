@@ -1,7 +1,9 @@
 package cn.pompip.browser;
 
+import cn.pompip.browser.dao.MenuDao;
 import cn.pompip.browser.dao.NewDao;
 import cn.pompip.browser.dao.NewsContentDao;
+import cn.pompip.browser.model.MenuBean;
 import cn.pompip.browser.model.NewsBean;
 import cn.pompip.browser.model.NewsContentBean;
 import cn.pompip.browser.task.GetNewListTask;
@@ -33,6 +35,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -122,6 +125,14 @@ public class BrowserApplicationTests {
     GetNewListTask newsTask;
     @Test public void testGetNews(){
         newsTask.generateResult("kexue");
+    }
+
+    @Autowired
+    MenuDao menuDao;
+    @Test public void testMenuDao(){
+        List<MenuBean> exitMenuSort = menuDao.findAllByTypeOrderBySort("2");
+        System.out.println(exitMenuSort.size());
+        exitMenuSort.forEach(menuBean -> System.out.println("menu" + menuBean.getTitle()));
     }
 
 }

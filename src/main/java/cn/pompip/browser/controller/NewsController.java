@@ -12,6 +12,8 @@ import cn.pompip.browser.service.VideoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -76,27 +78,12 @@ public class NewsController {
     }
 
     @RequestMapping(value = "/share")
-    public ModelAndView shareNew(HttpServletRequest request, ModelAndView mav) throws IOException {
-        String id = request.getParameter("id");
-        //String urlMd5=request.getParameter("urlMd5");
-        //String url=request.getParameter("url");
-        //String type=request.getParameter("type");
+    public String shareNew(long id, Model mav) throws  NoResultException {
 
-//        NewsBean newsBean = newsService.getById(Long.parseLong(id));
-//
-//        Document htmlDom = parseHtmlFromString(newsBean.getUrl());
-//        String title = htmlDom.getElementsByClass("title").get(0).text();
-//        String timeSrc = htmlDom.getElementsByClass("src").get(0).text();
-//        String content = htmlDom.getElementById("content").html().toString();
-//        String[] timeSrcArr = timeSrc.split("来源：");
-//        String time = timeSrcArr[0].replaceAll("&nbsp;", "");
-//        String source = timeSrcArr.length > 1 ? timeSrcArr[1] : "";
-//        mav.addObject("title", title);
-//        mav.addObject("time", time);
-//        mav.addObject("source", source);
-//        mav.addObject("content", content);
-//        mav.setViewName("new/detail");
-        return mav;
+        NewsContentBean newsContentBean = newsService.findNewsContentByID(id);
+
+        mav.addAttribute("content",newsContentBean.getNewsContent());
+        return "/share.html";
 
     }
 

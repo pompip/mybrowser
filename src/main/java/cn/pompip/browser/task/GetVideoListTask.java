@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,17 +56,18 @@ public class GetVideoListTask {
     public void run() {
         log.info("-------------------begin GetVideoListTask-------------------");
         for (String type : videoTypes) {
-            log.info("get " + type);
-            this.getVideoListByType(type);
+            int videoListByType = getVideoListByType(type);
+            log.info("get " + type +" num: "+ videoListByType);
         }
         log.info("-------------------end GetVideoListTask-------------------");
 
 
     }
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    ObjectMapper objectMapper;
 
-    private void getVideoListByType(String type) {
+    private int getVideoListByType(String type) {
         Map<String, Object> postData = new HashMap<String, Object>();
         postData.put("category", type);
         postData.put("refer", "1");
@@ -108,62 +110,63 @@ public class GetVideoListTask {
         postData.put("_rticket", System.nanoTime());
 
         String getUrl = "http://is.snssdk.com/api/news/feed/v46/";
-
-
-        HttpUtil.get(getUrl, postData, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-
-                log.error("不能获取视频列表",e );
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                ResponseBody body = response.body();
-                if (body == null) {
-                    log.error("视频列表为空");
-                    return;
+        int num = 0;
+        try {
+            ResponseBody responseBody = HttpUtil.get(getUrl, postData);
+            ArrayList<VideoBean> videoBeanArrayList = parseVideoList(responseBody.byteStream(), type);
+            for (VideoBean videoBean : videoBeanArrayList) {
+                VideoContentBean videoContentBean = parseVideo(videoBean);
+                if (videoContentBean==null){
+                    continue;
                 }
-                parseVideoList(body.byteStream(), type);
-
+                try {
+                    videoService.insertVideo(videoBean, videoContentBean);
+                    num++;
+                } catch (Exception e) {
+                    log.error("插入报错视频", e);
+                }
             }
-        });
 
+        } catch (IOException | NullPointerException e) {
+            log.error("不能获取视频列表", e);
+        }
 
+        return num;
     }
 
-    private void parseVideoList(InputStream inputStream, String type) throws IOException {
+    private ArrayList<VideoBean> parseVideoList(InputStream inputStream, String type) throws IOException {
+
         JsonNode jsonObject = objectMapper.readTree(inputStream);
         String code = jsonObject.findValue("message").asText();
         int total = jsonObject.findValue("total_number").asInt();
+        ArrayList<VideoBean> videoBeanArrayList = new ArrayList<>();
         if ("success".equals(code) && total > 0) {
             List<String> list = jsonObject.findValue("data").findValuesAsText("content");
-            log.info("获取 " + list.size() + " 条视频");
             list.forEach(value -> {
-                JsonNode contentStr = null;
                 try {
-                    contentStr = objectMapper.readTree(value);
-                } catch (IOException e) {
-                    return;
+                    JsonNode contentStr = objectMapper.readTree(value);
+                    VideoBean newsBean = parseObject(contentStr, type);
+                    if (newsBean!=null){
+                        videoBeanArrayList.add(newsBean);
+                    }
+                } catch (Exception e) {
+                    log.error("解析视频错误", e);
                 }
-                VideoBean newsBean = parseObject(contentStr, type);
-                if (newsBean == null) {
-                    return;
-                }
-                parseVideo(newsBean);
-
             });
         }
+        return videoBeanArrayList;
     }
 
 
-    VideoBean parseObject(JsonNode content, String type) {
+    private VideoBean parseObject(JsonNode content, String type) {
         JsonNode url = content.findValue("url");
         if (url == null) {
             return null;
         }
         String urlMd5 = MD5.getMD5(url.asText());
         VideoBean newsBean = new VideoBean();
+
+
         newsBean.setUrl(content.findValue("url").asText());
         newsBean.setTitle(content.has("title") ? content.findValue("title").asText() : "");
         newsBean.setSource(content.findValue("source").asText().replaceAll("[\\x{10000}-\\x{10FFFF}]", ""));
@@ -180,14 +183,12 @@ public class GetVideoListTask {
 
         newsBean.setUrlmd5(urlMd5);
         newsBean.setNewsType(type);
-
         newsBean.setCreateTime(DateTimeUtil.getCurrentDateTimeStr());
 
         return newsBean;
 
     }
 
-    @Async
     public VideoContentBean parseVideo(VideoBean newsBean) {
         String videoUrl = "http://ib.365yg.com";
         String r = System.currentTimeMillis() + "";
@@ -195,32 +196,26 @@ public class GetVideoListTask {
         CRC32 crc32 = new CRC32();
         crc32.update(params.getBytes());
         videoUrl = videoUrl + params + "&s=" + crc32.getValue();
-        JsonNode jsonObject = null;
         try {
             String data = HttpUtil.get(videoUrl);
-            jsonObject = objectMapper.readTree(data);
+            JsonNode jsonObject = objectMapper.readTree(data);
+            if ("success".equals(jsonObject.get("message").asText()) && jsonObject.get("total").asInt() > 0) {
+                JsonNode videoData = jsonObject.get("data").get("video_list").get("video_1");
+                VideoContentBean videoContentBean = new VideoContentBean();
+                videoContentBean.setVideoId(newsBean.getVideoId());
+                videoContentBean.setTitle(newsBean.getTitle());
+                videoContentBean.setMainUrl(Base64.decodeString(videoData.get("main_url").asText()));
+                videoContentBean.setBackupUrl(Base64.decodeString(videoData.get("backup_url_1").asText()));
+                return videoContentBean;
+            } else {
+                return null;
+            }
         } catch (Exception e) {
             log.error("解析视频错误", e);
-        }
-
-        if ("success".equals(jsonObject.get("message").asText()) && jsonObject.get("total").asInt() > 0) {
-            JsonNode videoData = jsonObject.get("data").get("video_list").get("video_1");
-            VideoContentBean videoContentBean = new VideoContentBean();
-            videoContentBean.setVideoId(newsBean.getVideoId());
-            videoContentBean.setTitle(newsBean.getTitle());
-            videoContentBean.setMainUrl(Base64.decodeString(videoData.get("main_url").asText()));
-            videoContentBean.setBackupUrl(Base64.decodeString(videoData.get("backup_url_1").asText()));
-
-            try {
-                videoService.insertVideo(newsBean, videoContentBean);
-            } catch (Exception e) {
-                log.error("插入报错视频", e);
-            }
-
-            return videoContentBean;
-        } else {
             return null;
         }
+
+
     }
 
 }

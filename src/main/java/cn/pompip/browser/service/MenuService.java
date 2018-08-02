@@ -17,30 +17,17 @@ import java.util.List;
 public class MenuService {
 
     @Autowired
-    private MenuDao dao;
+    private MenuDao menuDao;
 
 
     public List<MenuBean> queryAllMenu(String type) {
-        ArrayList<MenuBean> menuBeans = new ArrayList<>();
-
-        List<String> typeList;
-        if ("1".equals(type)) {
-            typeList = Arrays.asList(GetNewListTask.newTypes);
-        } else if ("2".equals(type)) {
-            typeList = Arrays.asList(GetVideoListTask.videoTypes);
-        } else {
-            typeList = new ArrayList<>();
-            typeList.add("wuhan");
-        }
-        for (String newType : typeList) {
-            MenuBean menuBean = new MenuBean();
-            menuBean.setTitle(newType);
-            menuBean.setType(type);
-            menuBean.setNewsType(newType);
-            menuBeans.add(menuBean);
+//        List<MenuBean> menuBeans = menuDao.findAllByTypeOrderBySort(type);
+        if ("1".equals(type)){
+            return menuDao.findExitNewsMenuNative();
+        }else {
+            return menuDao.findExitVideoMenuNative();
         }
 
-        return menuBeans;
     }
 
 

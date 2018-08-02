@@ -5,6 +5,7 @@ import okhttp3.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.StreamingHttpOutputMessage;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
@@ -75,14 +76,13 @@ public class HttpUtil {
         return body.string();
     }
 
-    public static String get(String url, Map<String, Object> params) throws Exception {
+    public static ResponseBody get(String url, Map<String, Object> params) throws IOException {
         HttpUrl.Builder builder = HttpUrl.get(url).newBuilder();
         params.forEach((key, value) -> builder.addQueryParameter(key, value.toString()));
         Request request = new Request.Builder().get().url(builder.build())
                 .header("Content-Type", "text/html;charset=utf-8")
                 .build();
-        ResponseBody body = httpClient.newCall(request).execute().body();
-        return body.string();
+        return httpClient.newCall(request).execute().body();
     }
 
     public static void get(String url, Map<String, Object> params, Callback callback) {
